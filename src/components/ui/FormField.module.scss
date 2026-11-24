@@ -1,0 +1,65 @@
+@use '../../styles/tokens' as *;
+
+.field {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  color: $color-text-secondary;
+  margin-bottom: 6px;
+}
+
+.control {
+  width: 100%;
+  height: 44px;
+  padding: 0 40px 0 12px;
+  font: inherit;
+  font-size: 14px;
+  color: $color-text-primary;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  outline: none;
+  appearance: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &::placeholder {
+    color: $color-text-faint;
+  }
+
+  &:focus {
+    border-color: $color-purple-500;
+    box-shadow: 0 0 0 3px rgba($color-purple-500, 0.2);
+  }
+}
+
+.textarea {
+  height: auto;
+  min-height: 104px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.wrap {
+  position: relative;
+}
+
+.icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $color-purple-500;
+  pointer-events: none;
+  display: inline-flex;
+}
+
+.hint {
+  margin-top: 4px;
+  font-size: 10px;
+  color: $color-text-faint;
+}

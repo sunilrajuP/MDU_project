@@ -1,0 +1,69 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
+
+.button {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  border-radius: $radius-sm;
+  border: none;
+  padding: $space-3 $space-5;
+  font-size: $font-size-base;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.primary {
+  background: $color-purple-700;
+  color: $color-text-inverse;
+
+  &:hover:not(:disabled) {
+    background: $color-purple-600;
+  }
+}
+
+.secondary {
+  background: $color-purple-accent;
+  color: $color-purple-700;
+
+  &:hover:not(:disabled) {
+    background: $color-purple-100;
+  }
+}
+
+.ghost {
+  background: transparent;
+  color: $color-text-secondary;
+
+  &:hover:not(:disabled) {
+    background: $color-surface-muted;
+  }
+}
+
+.outline {
+  background: $color-surface;
+  color: $color-purple-700;
+  border: 1px solid $color-border;
+
+  &:hover:not(:disabled) {
+    background: $color-surface-muted;
+  }
+}
+
+.danger {
+  background: $color-danger;
+  color: $color-text-inverse;
+}

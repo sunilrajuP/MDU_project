@@ -1,0 +1,161 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
+
+.page {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-6;
+  padding: $space-6;
+  background: linear-gradient(180deg, $color-login-background-top 0%, $color-login-background-bottom 100%);
+}
+
+.connection {
+  position: absolute;
+  top: $space-6;
+  right: $space-6;
+}
+
+.card {
+  width: 100%;
+  max-width: 342px;
+  display: flex;
+  flex-direction: column;
+  gap: $space-6;
+  background: $color-surface;
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
+  padding: $space-6;
+
+  @include tablet-up {
+    max-width: 440px;
+    padding: $space-8;
+  }
+}
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-6;
+  text-align: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.brandMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-sm;
+  background: $color-login-accent;
+  color: $color-text-inverse;
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.brandName {
+  font-weight: 600;
+  font-size: $font-size-xl;
+  color: $color-login-text;
+}
+
+.brandSubtitle {
+  font-size: $font-size-sm;
+  color: $color-login-muted;
+  letter-spacing: 0.04em;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  width: 100%;
+  text-align: left;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: 600;
+  color: $color-login-text;
+}
+
+.subtitle {
+  margin: 0;
+  color: $color-login-muted;
+  font-size: $font-size-md;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+
+  label {
+    color: $color-login-muted;
+  }
+
+  input {
+    border-color: $color-login-border;
+    background: $color-surface;
+    color: $color-login-text;
+  }
+
+  > button[type='submit'] {
+    background: $color-login-accent;
+
+    &:hover:not(:disabled) {
+      background: $color-login-accent-hover;
+    }
+  }
+}
+
+.errorText {
+  margin: 0;
+  color: $color-danger;
+  font-size: $font-size-sm;
+}
+
+.forgotPassword {
+  @include touch-target;
+  @include focus-visible-ring;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $color-login-accent-hover;
+  font-size: $font-size-md;
+  font-weight: 600;
+}
+
+.securityNote {
+  margin: 0;
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-login-muted;
+}
+
+.connection > div > span[data-status='online'] {
+  border: 1px solid $color-login-online;
+  background: transparent;
+  color: $color-login-online;
+}
+
+.connection > div > span[data-status='offline'] {
+  border: 1px solid $color-login-border;
+  background: transparent;
+  color: $color-login-muted;
+}

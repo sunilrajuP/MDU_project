@@ -1,0 +1,77 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba($color-navy-900, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: $z-index-dialog;
+  padding: $space-4;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 440px;
+  background: $color-surface;
+  border-radius: $radius-lg;
+  padding: $space-6;
+  box-shadow: $shadow-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+}
+
+.close {
+  @include touch-target;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: $color-text-secondary;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.input,
+.textarea {
+  @include focus-visible-ring;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  padding: $space-3;
+  font-size: $font-size-base;
+  font-weight: 400;
+  font-family: inherit;
+  color: $color-text-secondary;
+  resize: vertical;
+}
+
+.input {
+  height: $touch-target-min;
+}
+
+.error {
+  margin: 0;
+  color: $color-danger;
+  font-size: $font-size-sm;
+}

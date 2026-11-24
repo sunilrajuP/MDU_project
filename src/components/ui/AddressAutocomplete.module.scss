@@ -1,0 +1,45 @@
+
+@use '../../styles/tokens' as *;
+
+.list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 8px;
+  box-shadow: $shadow-md;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: $color-text-primary;
+
+  span {
+    font-size: 11px;
+    color: $color-text-secondary;
+  }
+}
+
+.active {
+  background: $color-purple-accent;
+}
+
+.status {
+  padding: 10px 12px;
+  font-size: 12px;
+  color: $color-text-secondary;
+}

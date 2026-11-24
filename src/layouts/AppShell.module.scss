@@ -1,0 +1,327 @@
+@use '../styles/tokens' as *;
+@use '../styles/mixins' as *;
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.sidebar {
+  display: none;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.appBar {
+  @include touch-target;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $space-5 $space-4;
+  background: $color-surface;
+  border-bottom: $border-width-default solid $color-border;
+  position: sticky;
+  top: 0;
+  z-index: $z-index-nav;
+}
+
+.appBarText {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pageSubtitle {
+  margin: 0;
+  font-size: $font-size-xs;
+  font-weight: 400;
+  color: $color-text-faint;
+}
+
+.appBarActions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: $space-2;
+}
+
+.appBarActions > :first-child {
+  flex: 0 0 auto;
+}
+
+.accountControl {
+  position: relative;
+}
+
+.accountTrigger {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  max-width: $account-trigger-max-width;
+  padding: 0 $space-2;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-text-primary;
+  font: inherit;
+  cursor: pointer;
+}
+
+.accountName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountMenu {
+  position: absolute;
+  top: calc(100% + #{$space-2});
+  right: 0;
+  z-index: $z-index-sheet;
+  display: flex;
+  flex-direction: column;
+  min-width: $account-menu-min-width;
+  max-width: calc(100vw - #{$space-8});
+  padding: $space-3;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  box-shadow: $shadow-md;
+}
+
+.accountUserName {
+  overflow-wrap: anywhere;
+  font-size: $font-size-md;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.accountRole {
+  margin-top: $space-1;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.accountSignOut {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  margin-top: $space-3;
+  padding: 0 $space-2;
+  border: 0;
+  border-top: $border-width-default solid $color-border;
+  background: transparent;
+  color: $color-text-primary;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.content {
+  flex: 1;
+  padding: $space-4;
+  padding-bottom: calc(#{$bottom-nav-height} + #{$space-4});
+  background: $color-surface-muted;
+}
+
+.bottomNav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  height: $bottom-nav-height;
+  background: $color-surface;
+  border-top: $border-width-default solid $color-border;
+  z-index: $z-index-nav;
+}
+
+.tab {
+  @include touch-target;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $space-1;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  text-decoration: none;
+}
+
+.tabActive {
+  color: $color-purple-700;
+}
+
+@include tablet-up {
+  .shell {
+    flex-direction: row;
+    min-height: 100dvh;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: $sidebar-width;
+    height: 100dvh;
+    box-sizing: border-box;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    background: $color-surface;
+    color: $color-text-primary;
+    border-right: $border-width-default solid $color-border;
+    padding: $space-8 $space-4 $space-6;
+    gap: $space-8;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  .brandMark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: $brand-mark-size;
+    height: $brand-mark-size;
+    border-radius: $radius-sm;
+    background: $color-purple-700;
+    color: $color-text-inverse;
+    flex-shrink: 0;
+  }
+
+  .brandText {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brandName {
+    font-weight: 600;
+    font-size: $font-size-md;
+    color: $color-text-primary;
+  }
+
+  .brandSubtitle {
+    font-size: $font-size-2xs;
+    color: $color-text-secondary;
+    letter-spacing: $brand-subtitle-letter-spacing;
+  }
+
+  .navList {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    flex: 1;
+  }
+
+  .navItem {
+    @include touch-target;
+    @include focus-visible-ring;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: 0 $space-4;
+    border-radius: $radius-nav;
+    color: $color-sidebar-text;
+    text-decoration: none;
+    background: transparent;
+    border: none;
+    font-size: $font-size-md;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .navItemActive {
+    background: rgba($color-nav-active, 0.1);
+    color: $color-nav-active;
+    font-weight: 700;
+  }
+
+  .userFooter {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .userName {
+    font-size: $font-size-md;
+    font-weight: 600;
+    color: $color-text-primary;
+  }
+
+  .roleLabel {
+    font-size: $font-size-xs;
+    color: $color-text-secondary;
+  }
+
+  .main {
+    margin-left: $sidebar-width;
+    width: calc(100% - #{$sidebar-width});
+    min-width: 0;
+  }
+
+  .appBar {
+    padding: $space-6 $space-6 $space-4;
+  }
+
+  .accountTrigger {
+    max-width: $account-trigger-max-width-tablet;
+    padding: 0 $space-3;
+  }
+
+  .pageTitle {
+    font-size: $font-size-xl;
+  }
+
+  .content {
+    padding: $space-6;
+    padding-bottom: $space-6;
+    max-width: $content-max-width-tablet;
+  }
+
+  .bottomNav {
+    display: none;
+  }
+}
+
+@include desktop-up {
+  .content {
+    max-width: $content-max-width-desktop;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .content:has(> [data-layout='dashboard']) {
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+  }
+}

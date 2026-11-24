@@ -1,0 +1,54 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
+
+.viewport {
+  position: fixed;
+  top: $space-4;
+  right: $space-4;
+  left: $space-4;
+  z-index: $z-index-dialog;
+  pointer-events: none;
+
+  @include tablet-up {
+    left: auto;
+    width: $calendar-max-width;
+    max-width: calc(100% - #{$space-8});
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-text-primary;
+  box-shadow: $shadow-md;
+  font-size: $font-size-md;
+  line-height: $line-height-compact;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+
+.success {
+  border-color: $color-pill-approved-text;
+}
+
+.error {
+  border-color: $color-danger;
+}
+
+.dismiss {
+  @include touch-target;
+  @include focus-visible-ring;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: $space-2;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  color: $color-text-primary;
+  cursor: pointer;
+}

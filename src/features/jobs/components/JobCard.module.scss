@@ -1,0 +1,246 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+$edit-size: 2rem;
+$status-column-width: 7.5rem;
+
+.card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-3;
+  height: fit-content;
+  border-radius: $radius-md;
+  border: 1px solid $color-border;
+  background: $color-surface;
+  box-shadow: $shadow-sm;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-2;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  min-width: 0;
+  flex: 1;
+}
+
+// Two columns: Created by / Created Date / Scheduled Date on the left,
+// Lead / Surveyor on the right, row-aligned.
+.meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: $space-3;
+  row-gap: $space-1;
+}
+
+// Right side: [status column] [edit button]
+.side {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: $space-2;
+  flex: 0 0 auto; // sized by its content
+}
+
+// Status badge, overdue flag and assignee stacked in one column
+.statusColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: $space-1;
+  min-width: 0;
+  max-width: $status-column-width; // long assignee names truncate
+}
+
+.assignment {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  max-width: 100%; // never wider than the column
+  min-width: 0;
+  border: 1px solid $color-border;
+  background: $color-surface-muted;
+  border-radius: $radius-xs;
+  padding: $space-1 $space-2;
+  color: $color-purple-700;
+  cursor: default;
+
+  svg {
+    flex-shrink: 0; // keep the icon from squashing
+  }
+
+  &:disabled {
+    color: $color-text-secondary;
+  }
+}
+
+.assignee {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  font-size: $font-size-xs;
+  font-weight: 500;
+}
+
+.edit {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: $edit-size;
+  height: $edit-size;
+  min-width: $edit-size; // overrides the touch-target mixin's minimum
+  min-height: $edit-size;
+  // nudge toward the top-right corner
+  margin: calc(-1 * #{$space-1}) calc(-1 * #{$space-1}) 0 0;
+  color: $color-nav-active;
+  background: $color-surface-muted;
+  border-radius: 100%;
+}
+
+.identity {
+  display: flex;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+}
+
+.siteName {
+  font-weight: 600;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+}
+
+.address {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.scheduleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $space-1;
+  justify-content: space-between;
+}
+
+.schedule {
+  min-width: 0;
+  font-size: $font-size-2xs;
+  color: $color-text-secondary;
+}
+
+.metaLabel {
+  color: $color-text-secondary;
+  font-weight: 600;
+}
+
+.metaValue {
+  color:  $color-text-primary;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: $space-2;
+}
+
+.viewMore {
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  padding: $space-1 $space-2;
+  border-radius: $radius-xs;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  text-decoration: none;
+  color: $color-nav-active;
+  background: $color-surface-muted;
+
+}
+
+@include desktop-up {
+  .card {
+    padding: $dashboard-card-padding;
+  }
+
+  // Grid layout:
+  //   row 1: [ site name + address ] [ status column + edit ]
+  //   row 2: [ meta grid spanning the full width, below the edit button ]
+  .header {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: $space-2;
+    row-gap: $space-3;
+  }
+
+  // Lets .identity and .meta become direct grid items of .header
+  .main {
+    display: contents;
+  }
+
+  .identity {
+    grid-column: 1;
+    grid-row: 1;
+    gap:0.3125rem;
+  }
+
+  .side {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .meta {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    row-gap: 0.25rem;
+    // left column takes the free space; Lead/Surveyor column hugs the right edge
+    grid-template-columns: minmax(0, 1fr) fit-content(40%);
+
+    .schedule {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .siteName,
+  .address {
+    line-height: $line-height-compact;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .schedule {
+    font-size: $dashboard-meta-size;
+    line-height: $line-height-compact;
+  }
+
+  .siteName {
+    font-size: $dashboard-title-size;
+  }
+
+  .address {
+    font-size: $dashboard-address-size;
+  }
+}

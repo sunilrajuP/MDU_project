@@ -1,0 +1,122 @@
+// Single source of truth for design tokens (H3). Never hard-code colors/spacing/etc. in components.
+// Values verified against the Figma file (QEOLnFe1daU5Lvm0zlPrhg) Field Operations / Create Job / Login frames.
+
+// Brand gradient (login / ambient surfaces) — exact 4-stop gradient from the Login frame
+$color-brand-gradient-start: #4b3ace; // 0%
+$color-brand-gradient-mid1: #3629b8; // 35%
+$color-brand-gradient-mid2: #1e1480; // 70%
+$color-brand-gradient-end: #0f0854; // 100%
+
+// Core palette (Figma-verified)
+$color-purple-700: #6655e8;
+$color-purple-600: #7667ed;
+$color-purple-500: #8a7fff;
+$color-purple-100: #302d50;
+$color-purple-accent: #27253f;
+$color-navy-900: #10121a;
+$color-navy-800: #1a1e2b;
+$color-nav-active: #b0a7ff; // sidebar active nav icon/label
+
+$color-surface: #1C2130;
+$color-surface-muted: #10121a; // page background
+$color-border: #303548;
+$color-login-background-top: #292541;
+$color-login-background-bottom: #10121a;
+$color-text-primary: #e8e9f4; // headings
+$color-text-secondary: #a5a9b8; // body/labels/addresses
+$color-text-faint: #81889a; // timestamps, hints, placeholders
+$color-sidebar-text: $color-text-secondary;
+$color-login-border: $color-border;
+$color-login-text: $color-text-primary;
+$color-login-muted: $color-text-secondary;
+$color-login-accent: $color-purple-700;
+$color-login-accent-hover: $color-purple-600;
+$color-login-online: #57d69a;
+$color-text-inverse: #ffffff;
+
+// Dark status pills retain distinct semantic colors.
+$color-pill-neutral-bg: #3a3020;
+$color-pill-not-started-bg: #292d3a;
+$color-pill-not-started-text: #a5a9b8;
+$color-pill-neutral-text: #efc16b;
+$color-pill-progress-bg: #1d3046;
+$color-pill-progress-text: #7ab8ff;
+$color-pill-qc-bg: #2b2850;
+$color-pill-qc-text: #b3a5ff;
+$color-pill-returned-bg: #3d2c20;
+$color-pill-returned-text: #f0ad70;
+$color-pill-overdue-bg: #3d252b;
+$color-pill-overdue-text: #f18b98;
+$color-pill-approved-bg: #1d382d;
+$color-pill-approved-text: #80d5a5;
+$color-pill-online-bg: #1d382d;
+$color-pill-online-text: #80d5a5;
+
+$color-online: #57d69a;
+$color-offline: #a5a9b8;
+$color-danger: #ff767f; // generic form/action error (distinct from the "Returned" status pill)
+
+// Spacing scale (px)
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-8: 32px;
+$space-10: 40px;
+
+// Radius (Figma-verified: cards 14, inputs/search 10, inline-assignment 8, nav items 12, pill 100)
+$radius-xs: 8px;
+$radius-sm: 10px;
+$radius-md: 14px;
+$radius-lg: 16px;
+$radius-nav: 12px;
+$radius-pill: 100px;
+
+// Typography
+$font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+$font-size-2xs: 10px;
+$font-size-xs: 11px;
+$font-size-sm: 12px;
+$font-size-md: 14px;
+$font-size-base: 16px;
+$font-size-lg: 21px;
+$font-size-xl: 24px;
+$font-size-2xl: 26px;
+$line-height-compact: 1.4;
+
+// Shadow (Figma-verified: card 0/3/12 @3% navy, login card 0/16/48 @19%)
+$shadow-sm: 0 3px 12px rgba(0, 0, 0, 0.2);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.28);
+$shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.42);
+
+// Z-index
+$z-index-dropdown: 20;
+$z-index-nav: 100;
+$z-index-sheet-scrim: 200;
+$z-index-sheet: 210;
+$z-index-dialog: 300;
+
+// Breakpoints (min-width)
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 1024px;
+
+// Layout
+$sidebar-width: 184px;
+$bottom-nav-height: 68px;
+$touch-target-min: 48px; // Figma's standard input/button height
+$account-trigger-max-width: 10rem;
+$account-trigger-max-width-tablet: 12rem;
+$calendar-max-width: 22rem;
+$account-menu-min-width: 12rem;
+$border-width-default: 1px;
+$brand-mark-size: 32px;
+$brand-subtitle-letter-spacing: 0.04em;
+$content-max-width-tablet: 1100px;
+$content-max-width-desktop: 1320px;
+
+$dashboard-card-padding: clamp($space-1, calc(#{$space-1} + (100vw - #{$breakpoint-desktop}) * 0.01), $space-4);
+$dashboard-title-size: clamp($font-size-md, calc(#{$font-size-md} + (100vw - #{$breakpoint-desktop}) * 0.004), $font-size-base);
+$dashboard-address-size: clamp($font-size-sm, calc(#{$font-size-sm} + (100vw - #{$breakpoint-desktop}) * 0.004), $font-size-md);
+$dashboard-meta-size: clamp($font-size-2xs, calc(#{$font-size-2xs} + (100vw - #{$breakpoint-desktop}) * 0.004), $font-size-md);

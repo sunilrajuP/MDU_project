@@ -1,0 +1,36 @@
+@use 'tokens' as *;
+
+// Mobile-first breakpoint mixins — the only place breakpoints are referenced.
+@mixin tablet-up {
+  @media (min-width: $breakpoint-tablet) {
+    @content;
+  }
+}
+
+@mixin desktop-up {
+  @media (min-width: $breakpoint-desktop) {
+    @content;
+  }
+}
+
+@mixin focus-visible-ring {
+  &:focus-visible {
+    outline: 2px solid $color-purple-500;
+    outline-offset: 2px;
+  }
+}
+
+@mixin touch-target {
+  min-height: $touch-target-min;
+  min-width: $touch-target-min;
+}
+
+@mixin brand-gradient {
+  background: linear-gradient(
+    180deg,
+    $color-brand-gradient-start 0%,
+    $color-brand-gradient-mid1 35%,
+    $color-brand-gradient-mid2 70%,
+    $color-text-inverse 100%
+  );
+}

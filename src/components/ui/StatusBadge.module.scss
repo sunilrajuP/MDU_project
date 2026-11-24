@@ -1,0 +1,48 @@
+@use '../../styles/tokens' as *;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: $radius-pill;
+  padding: $space-1 $space-3;
+  font-size: $font-size-xs;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.new {
+  background: $color-pill-neutral-bg;
+  color: $color-pill-neutral-text;
+}
+
+.assigned_teamlead,
+.assigned_surveyor {
+  background: $color-pill-not-started-bg;
+  color: $color-pill-not-started-text;
+}
+
+.in_progress {
+  background: $color-pill-progress-bg;
+  color: $color-pill-progress-text;
+}
+
+.submitted,
+.pending_qc {
+  background: $color-pill-qc-bg;
+  color: $color-pill-qc-text;
+}
+
+.returned {
+  background: $color-pill-returned-bg;
+  color: $color-pill-returned-text;
+}
+
+.approved {
+  background: $color-pill-approved-bg;
+  color: $color-pill-approved-text;
+}
+
+.overdue {
+  background: $color-pill-overdue-bg;
+  color: $color-pill-overdue-text;
+}

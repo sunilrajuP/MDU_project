@@ -1,0 +1,47 @@
+@use '../../styles/tokens' as *;
+
+.wrap {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $space-2;
+  min-width: 0;
+  flex: 1;
+}
+
+.syncStatus {
+  flex-basis: 100%;
+  text-align: right;
+  overflow-wrap: anywhere;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.pill {
+  border-radius: $radius-pill;
+  padding: $space-1 $space-3;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+  flex-shrink: 0;
+
+}
+
+.online {
+  background: rgba($color-online, 0.12);
+  color: $color-online;
+}
+
+.offline {
+  background: rgba($color-offline, 0.16);
+  color: $color-offline;
+}
