@@ -45,6 +45,21 @@
   color: $color-text-secondary;
 }
 
+.clearSearchButton {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  color: $color-text-secondary;
+  cursor: pointer;
+}
+
 .listHeading {
   display: flex;
   align-items: baseline;

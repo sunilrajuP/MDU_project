@@ -1,0 +1,82 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-3;
+  border: $border-width-default solid $color-pill-returned-text;
+  border-radius: $radius-md;
+  background: $color-pill-returned-bg;
+  color: $color-pill-returned-text;
+
+  p {
+    margin: 0;
+  }
+}
+
+.bannerTitle {
+  font-size: $font-size-md;
+  font-weight: 700;
+}
+
+.bannerReason {
+  font-size: $font-size-md;
+}
+
+.bannerMeta {
+  font-size: $font-size-xs;
+}
+
+.card {
+  min-width: 0;
+
+  @include tablet-up {
+    max-width: 532px;
+  }
+}
+
+.link {
+  @include focus-visible-ring;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-2;
+  padding: $space-3;
+  border-radius: $radius-md;
+  color: inherit;
+  text-decoration: none;
+}
+
+.meta {
+  font-size: $font-size-xs;
+  letter-spacing: 0.04em;
+  color: $color-text-faint;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: 600;
+  line-height: 1.2;
+  color: $color-text-primary;
+}
+
+.address {
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.sync {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.retained {
+  font-size: $font-size-sm;
+  color: $color-pill-approved-text;
+}

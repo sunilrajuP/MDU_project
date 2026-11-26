@@ -158,6 +158,7 @@ export function CreateJobPage({ backPath }: CreateJobPageProps) {
     : undefined);
   const hydrated = useAppSelector((state) => state.jobs.hydrated);
   const actor = useAppSelector(selectCurrentActor);
+
   const {
     isError: jobsError,
     isFetching: jobsFetching,
@@ -219,6 +220,8 @@ function JobForm({ backPath, job }: CreateJobPageProps & { job?: Job }) {
       label: target.name,
     })),
   ];
+  const assigneeRoleLabel = actor?.role === 'Manager' ? 'Team Lead' : 'Surveyor';
+  const assigneeLabel = `${job && assignee ? 'Reassign' : 'Assign'} ${assigneeRoleLabel}`;
   const [notes, setNotes] = useState(job?.siteDetails.notes ?? '');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>();
@@ -272,10 +275,10 @@ function JobForm({ backPath, job }: CreateJobPageProps & { job?: Job }) {
       }
       const action = job ? 'updated' : 'created';
       const message = saved.syncStatus === 'pending'
-        ? `Job ${action} and saved on this device. Waiting to sync.`
+        ? `Job "${saved.siteName}" ${action} and saved on this device. Waiting to sync.`
         : saved.syncStatus === 'failed'
-          ? `Job ${action} and saved on this device, but sync failed.`
-          : `Job ${action} successfully.`;
+          ? `Job "${saved.siteName}" ${action} and saved on this device, but sync failed.`
+          : `Job "${saved.siteName}" ${action} successfully.`;
       notification?.showNotification({ kind: saved.syncStatus === 'failed' ? 'error' : 'success', message });
       navigate(backPath, { replace: true });
     } catch (failure) {
@@ -341,7 +344,7 @@ function JobForm({ backPath, job }: CreateJobPageProps & { job?: Job }) {
 
             <div className={field.field}>
               <label className={field.label} htmlFor="assignee">
-                {job ? 'Reassign job' : actor?.role === 'Manager' ? 'Assign Team Lead' : 'Assign Surveyor'}
+                {assigneeLabel}
               </label>
               <AssigneeDropdown
                 value={assignee}

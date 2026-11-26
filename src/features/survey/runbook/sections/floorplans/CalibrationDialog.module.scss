@@ -1,0 +1,53 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.stage {
+  position: relative;
+  margin-bottom: $space-3;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  background: $color-navy-800;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  max-height: 55dvh;
+  object-fit: contain;
+  cursor: crosshair;
+}
+
+.marker {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border-radius: 50%;
+  background: $color-purple-700;
+  color: $color-text-inverse;
+  font-size: $font-size-xs;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+  margin-bottom: $space-3;
+}
+
+.error {
+  margin: $space-2 0 0;
+  font-size: $font-size-xs;
+  color: $color-danger;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}

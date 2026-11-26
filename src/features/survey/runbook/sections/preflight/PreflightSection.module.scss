@@ -1,0 +1,94 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-2;
+}
+
+.percent {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.summary > :nth-child(2) {
+  align-self: stretch;
+}
+
+.sentence {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.issues {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include desktop-up {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.issue {
+  @include focus-visible-ring;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  padding: $space-3 $space-4;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  color: $color-text-secondary;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $color-purple-500;
+  }
+}
+
+.alert {
+  flex: none;
+  color: $color-pill-neutral-text;
+}
+
+.issueText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.tag {
+  font-size: $font-size-xs;
+  font-weight: 650;
+  color: $color-purple-500;
+}
+
+.issueTitle {
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.issueDetail {
+  font-size: $font-size-sm;
+}
+
+.footnote {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}

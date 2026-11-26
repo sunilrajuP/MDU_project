@@ -1,0 +1,141 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-3 $space-4;
+}
+
+.headerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.meta {
+  font-size: $font-size-xs;
+  letter-spacing: 0.04em;
+  color: $color-text-faint;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-2xl;
+  font-weight: 600;
+  line-height: 1.2;
+  color: $color-text-primary;
+  overflow-wrap: anywhere;
+}
+
+.address {
+  margin: 0;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.sync {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+// Map card and contacts card sit side by side on desktop, stacked otherwise.
+.columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-4;
+
+  @include desktop-up {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+  min-width: 0;
+}
+
+.panelHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $color-text-secondary;
+}
+
+.coordinates {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.summary {
+  margin: 0;
+  font-size: $font-size-md;
+  line-height: 1.5;
+  color: $color-text-secondary;
+}
+
+.error {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-danger;
+}
+
+.wide {
+  width: 100%;
+}
+
+// Anchored "Start Survey" action: pinned above the mobile bottom nav, above the fold on larger screens.
+.actionBar {
+  position: sticky;
+  bottom: calc(#{$bottom-nav-height} + #{$space-2});
+  z-index: 1;
+  padding: $space-2 0;
+  background: $color-surface-muted;
+
+  @include tablet-up {
+    bottom: 0;
+  }
+}

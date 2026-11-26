@@ -1,0 +1,94 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.bfd {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-4;
+  border-radius: $radius-md;
+  color: $color-text-inverse;
+  background: linear-gradient(
+    90deg,
+    $color-brand-gradient-start 0%,
+    $color-brand-gradient-mid1 40%,
+    $color-brand-gradient-mid2 75%,
+    $color-brand-gradient-end 100%
+  );
+}
+
+.eyebrow {
+  font-size: $font-size-2xs;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.bfdCode {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bfdLine {
+  font-size: $font-size-md;
+}
+
+.bfdMeta {
+  font-size: $font-size-xs;
+  opacity: 0.8;
+}
+
+.review {
+  width: 100%;
+  margin-top: $space-3;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.eyebrowText {
+  margin: 0;
+  font-size: $font-size-xs;
+  letter-spacing: 0.04em;
+  color: $color-text-faint;
+}
+
+.note {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.choiceLabel {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: $color-text-secondary;
+}
+
+.link {
+  @include focus-visible-ring;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

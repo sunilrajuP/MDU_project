@@ -1,0 +1,131 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+// Layout shared by the capture, preview and markup steps inside the Modal body.
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-height: 100%;
+  padding: $space-4;
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: $radius-md;
+  background: $color-navy-800;
+  border: $border-width-default solid $color-border;
+}
+
+.viewfinder,
+.previewMedia {
+  display: block;
+  width: 100%;
+  max-height: 64dvh;
+  object-fit: contain;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-8 $space-4;
+  color: $color-text-faint;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: $font-size-md;
+  }
+}
+
+.recBadge {
+  position: absolute;
+  top: $space-3;
+  right: $space-3;
+  display: inline-flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-1 $space-3;
+  border-radius: $radius-pill;
+  background: $color-pill-overdue-bg;
+  color: $color-pill-overdue-text;
+  font-size: $font-size-sm;
+  font-weight: 650;
+}
+
+.stamp {
+  position: absolute;
+  left: $space-3;
+  bottom: $space-3;
+  max-width: calc(100% - #{$space-6});
+  padding: $space-1 $space-3;
+  border-radius: $radius-xs;
+  background: rgba($color-navy-900, 0.78);
+  color: $color-text-inverse;
+  font-size: $font-size-xs;
+  font-weight: 600;
+}
+
+.footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-4;
+  margin: 0 (-$space-4) (-$space-4);
+  border-top: $border-width-default solid $color-border;
+  background: $color-surface;
+
+  @include tablet-up {
+    flex-direction: row;
+    justify-content: flex-end;
+
+    > * {
+      min-width: 160px;
+    }
+  }
+}
+
+.filePicker {
+  @include touch-target;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $space-2;
+  padding: $space-3 $space-5;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-sm;
+  color: $color-purple-500;
+  font-size: $font-size-base;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:focus-within {
+    outline: 2px solid $color-purple-500;
+    outline-offset: 2px;
+  }
+}
+
+.fileInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.error {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-danger;
+}

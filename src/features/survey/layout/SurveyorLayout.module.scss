@@ -1,0 +1,30 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+// Content column for every Surveyor screen: full width on mobile, capped and centred on larger screens.
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  width: 100%;
+  margin: 0 auto;
+  min-width: 0;
+
+  @include tablet-up {
+    max-width: $content-max-width-tablet;
+  }
+
+  @include desktop-up {
+    max-width: $content-max-width-desktop;
+  }
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 0;
+
+  &:empty {
+    display: none;
+  }
+}

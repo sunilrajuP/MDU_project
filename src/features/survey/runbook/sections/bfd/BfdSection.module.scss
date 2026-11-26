@@ -1,0 +1,84 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-4;
+  border-radius: $radius-md;
+  color: $color-text-inverse;
+  background: linear-gradient(
+    90deg,
+    $color-brand-gradient-start 0%,
+    $color-brand-gradient-mid1 40%,
+    $color-brand-gradient-mid2 75%,
+    $color-brand-gradient-end 100%
+  );
+}
+
+.eyebrow {
+  font-size: $font-size-2xs;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.code {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.name {
+  margin-top: $space-1;
+  font-weight: 650;
+}
+
+.line {
+  font-size: $font-size-sm;
+}
+
+.trailTitle {
+  margin: 0 0 $space-2;
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.trail {
+  margin: 0;
+}
+
+.trailRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  padding: $space-3 0;
+  border-bottom: $border-width-default solid $color-border;
+  font-size: $font-size-md;
+
+  dt {
+    color: $color-text-secondary;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 650;
+    text-align: right;
+    color: $color-text-primary;
+  }
+}
+
+.note {
+  margin: 0;
+  padding-top: $space-3;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}

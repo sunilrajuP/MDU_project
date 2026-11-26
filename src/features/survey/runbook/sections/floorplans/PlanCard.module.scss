@@ -1,0 +1,148 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.card {
+  min-width: 0;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+}
+
+.open {
+  border-color: $color-purple-500;
+}
+
+.header {
+  @include focus-visible-ring;
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  width: 100%;
+  padding: $space-4;
+  border: none;
+  background: transparent;
+  color: $color-text-secondary;
+  text-align: left;
+  cursor: pointer;
+}
+
+.titles {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.name {
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.sub {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: 0 $space-4 $space-4;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.note {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.hint {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.devices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-1 $space-2 $space-1 $space-3;
+    border-radius: $radius-pill;
+    background: $color-purple-100;
+    color: $color-text-primary;
+    font-size: $font-size-sm;
+  }
+}
+
+.remove {
+  @include focus-visible-ring;
+  display: inline-flex;
+  padding: $space-1;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: $color-text-secondary;
+  cursor: pointer;
+}
+
+.done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3;
+  border-radius: $radius-sm;
+  background: $color-pill-approved-bg;
+  color: $color-pill-approved-text;
+  font-size: $font-size-sm;
+}
+
+.reopen {
+  @include focus-visible-ring;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

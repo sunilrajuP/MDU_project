@@ -1,0 +1,71 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.unit {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+}
+
+.open {
+  border-color: $color-purple-500;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3 $space-4;
+}
+
+.titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.sub {
+  margin: $space-1 0 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.iconButton {
+  @include touch-target;
+  @include focus-visible-ring;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-secondary;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-text-primary;
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: 0 $space-4 $space-4;
+}
+
+.hint {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}

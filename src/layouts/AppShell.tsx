@@ -112,9 +112,13 @@ export function AppShell({
                 aria-controls="app-account-details"
                 onClick={() => setAccountOpen((open) => !open)}
               >
-                <UserRound size={18} aria-hidden="true" />
-                <span className={styles.accountName}>{userName || 'Account'}</span>
-                <ChevronDown size={16} aria-hidden="true" />
+
+                <span className={styles.accountRow}>
+                  <UserRound className={styles.accountIcon} size={18} aria-hidden="true" />
+                  <span className={styles.accountName}>{userName || 'Account'}</span>
+                  <ChevronDown className={styles.accountChevron} size={16} aria-hidden="true" />
+                </span>
+                <span className={styles.accountTriggerRole}>{roleLabel}</span>
               </button>
               {(accountOpen || accountHovered) && (
                 <div

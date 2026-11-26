@@ -1,0 +1,26 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.questions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-sm;
+  background: $color-surface;
+}
+
+.label {
+  margin: 0;
+  font-size: $font-size-md;
+  font-weight: 650;
+  line-height: $line-height-compact;
+  color: $color-text-primary;
+}

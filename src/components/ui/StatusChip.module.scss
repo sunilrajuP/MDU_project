@@ -1,0 +1,42 @@
+@use '../../styles/tokens' as *;
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: $radius-pill;
+  padding: 2px $space-2;
+  font-size: $font-size-xs;
+  font-weight: 650;
+  line-height: $line-height-compact;
+  white-space: nowrap;
+}
+
+.success {
+  background: $color-pill-approved-bg;
+  color: $color-pill-approved-text;
+}
+
+.warning {
+  background: $color-pill-neutral-bg;
+  color: $color-pill-neutral-text;
+}
+
+.danger {
+  background: $color-pill-overdue-bg;
+  color: $color-pill-overdue-text;
+}
+
+.info {
+  background: $color-pill-progress-bg;
+  color: $color-pill-progress-text;
+}
+
+.brand {
+  background: $color-pill-qc-bg;
+  color: $color-pill-qc-text;
+}
+
+.neutral {
+  background: $color-pill-not-started-bg;
+  color: $color-pill-not-started-text;
+}

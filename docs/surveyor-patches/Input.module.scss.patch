@@ -1,0 +1,17 @@
+diff --git a/src/components/ui/Input.module.scss b/src/components/ui/Input.module.scss
+index 1cf127d..bb89067 100644
+--- a/src/components/ui/Input.module.scss
++++ b/src/components/ui/Input.module.scss
+@@ -13,6 +13,12 @@
+   color: $color-text-secondary;
+ }
+ 
++.tag {
++  font-size: $font-size-2xs;
++  font-weight: 400;
++  color: $color-text-faint;
++}
++
+ .input {
+   @include touch-target;
+   @include focus-visible-ring;

@@ -1,0 +1,72 @@
+@use '../../../styles/tokens' as *;
+
+// Figma "Card": 12px padding, 33px title row, 13px meta row, 6px progress bar, 48px action.
+.card {
+  min-width: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+  padding: $space-3;
+}
+
+.identity {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: 600;
+  line-height: 1.2;
+  color: $color-text-primary;
+  overflow-wrap: anywhere;
+}
+
+.ref {
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}
+
+.address {
+  margin: 0;
+  font-size: $font-size-md;
+  color: $color-text-secondary;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.progressText {
+  font-size: $font-size-sm;
+  color: $color-purple-500;
+}
+
+.action {
+  width: 100%;
+  margin-top: $space-1;
+  font-size: $font-size-lg;
+}

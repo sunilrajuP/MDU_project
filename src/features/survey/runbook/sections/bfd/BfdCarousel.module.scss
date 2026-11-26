@@ -1,0 +1,137 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.carousel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+  border: $border-width-default solid $color-purple-500;
+  border-radius: $radius-md;
+  background: $color-surface;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.close {
+  @include focus-visible-ring;
+  padding: $space-1 $space-2;
+  border: none;
+  background: transparent;
+  color: $color-purple-500;
+  font-size: $font-size-sm;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.count {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.dots {
+  display: flex;
+  gap: $space-1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dot {
+  width: 24px;
+  height: 6px;
+  border-radius: $radius-pill;
+  background: $color-purple-100;
+}
+
+.dotDone {
+  background: $color-purple-700;
+}
+
+.dotActive {
+  background: $color-purple-500;
+}
+
+.viewport {
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  transition: transform 0.25s ease;
+}
+
+.slide {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  min-width: 0;
+  padding: $space-1;
+}
+
+.prompt {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.error {
+  font-size: $font-size-xs;
+  color: $color-danger;
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  padding: $space-4;
+  border-radius: $radius-md;
+  color: $color-text-inverse;
+  background: linear-gradient(90deg, $color-brand-gradient-start, $color-brand-gradient-mid2 70%, $color-brand-gradient-end);
+}
+
+.eyebrow {
+  font-size: $font-size-2xs;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.code {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+}
+
+.name {
+  font-weight: 650;
+}
+
+.line {
+  font-size: $font-size-sm;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}

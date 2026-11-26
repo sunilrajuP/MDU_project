@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useGetJobsQuery } from '@/api/baseApi';
 import { useAppSelector } from '@/store/hooks';
 import { selectCurrentActor } from '@/features/auth/authSlice';
@@ -90,6 +90,19 @@ export function ManagerDashboardPage() {
               setPage(1);
             }}
           />
+          {search && (
+            <button
+              type="button"
+              className={styles.clearSearchButton}
+              aria-label="Clear search"
+              onClick={() => {
+                setSearch('');
+                setPage(1);
+              }}
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
      <div className={styles.listHeading}>
@@ -116,7 +129,7 @@ export function ManagerDashboardPage() {
       {visibleJobs.length > 0 && (
         <nav className={styles.pagination} aria-label="Job pages">
           <span className={styles.pageSummary} aria-live="polite">
-            Showing {firstIndex + 1}–{Math.min(firstIndex + PAGE_SIZE, visibleJobs.length)} of {visibleJobs.length}
+            Showing {firstIndex + 1} – {Math.min(firstIndex + PAGE_SIZE, visibleJobs.length)} of {visibleJobs.length}
           </span>
           <div className={styles.pageControls}>
             <button type="button" aria-label="Previous page" className={styles.pageButton} disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>

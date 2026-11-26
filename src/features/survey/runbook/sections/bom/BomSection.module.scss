@@ -1,0 +1,148 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.title {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  // Mobile: name + edit on the first line, quantity underneath, so nothing overflows.
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 0;
+  border-bottom: $border-width-default solid $color-border;
+
+  .qty {
+    grid-column: 2;
+    grid-row: 2;
+    align-items: flex-start;
+  }
+
+  .edit {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  @include tablet-up {
+    grid-template-columns: auto 1fr auto auto;
+
+    .qty {
+      grid-column: auto;
+      grid-row: auto;
+      align-items: flex-end;
+    }
+
+    .edit {
+      grid-column: auto;
+      grid-row: auto;
+    }
+  }
+}
+
+.check {
+  width: 20px;
+  height: 20px;
+  accent-color: $color-purple-700;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $space-1;
+  min-width: 0;
+}
+
+.item {
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.desc {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.qty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.qtyValue strong {
+  font-size: $font-size-lg;
+  color: $color-text-primary;
+}
+
+.unit {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.qtyInput {
+  @include focus-visible-ring;
+  width: 96px;
+  min-height: 40px;
+  padding: 0 $space-2;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-sm;
+  background: $color-surface;
+  color: $color-text-primary;
+  text-align: right;
+}
+
+.source {
+  font-size: $font-size-2xs;
+  letter-spacing: 0.04em;
+}
+
+.plan {
+  color: $color-purple-500;
+}
+
+.calculated {
+  color: $color-pill-progress-text;
+}
+
+.manual {
+  color: $color-pill-neutral-text;
+}
+
+.edit {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-secondary;
+  cursor: pointer;
+}
+
+.footnote {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}

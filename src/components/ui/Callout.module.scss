@@ -1,0 +1,45 @@
+@use '../../styles/tokens' as *;
+
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: $space-3;
+  padding: $space-3 $space-4;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  line-height: $line-height-compact;
+}
+
+.icon {
+  flex: none;
+  margin-top: 1px;
+}
+
+.text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.info {
+  background: $color-purple-100;
+  color: $color-text-secondary;
+
+  .icon {
+    color: $color-purple-500;
+  }
+}
+
+.warning {
+  background: $color-pill-neutral-bg;
+  color: $color-pill-neutral-text;
+}
+
+.success {
+  background: $color-pill-approved-bg;
+  color: $color-pill-approved-text;
+}
+
+.danger {
+  background: $color-pill-overdue-bg;
+  color: $color-pill-overdue-text;
+}

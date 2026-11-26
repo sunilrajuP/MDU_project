@@ -125,9 +125,34 @@ $status-column-width: 7.5rem;
   color: $color-text-primary;
 }
 
+.addressContainer {
+  @include focus-visible-ring;
+  position: relative;
+  min-width: 0;
+}
+
 .address {
+  display: block;
   font-size: $font-size-sm;
   color: $color-text-secondary;
+}
+
+.addressTooltip {
+  position: absolute;
+  z-index: $z-index-dropdown;
+  top: 100%;
+  left: 0;
+  width: max-content;
+  max-width: 100%;
+  padding: $space-2;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-xs;
+  background: $color-surface-muted;
+  box-shadow: $shadow-md;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .scheduleRow {
@@ -174,6 +199,9 @@ $status-column-width: 7.5rem;
   color: $color-nav-active;
   background: $color-surface-muted;
 
+  &:hover {
+    box-shadow: inset 0 0 0 1px $color-nav-active;
+  }
 }
 
 @include desktop-up {

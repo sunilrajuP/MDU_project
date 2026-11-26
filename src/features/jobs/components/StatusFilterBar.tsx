@@ -35,8 +35,10 @@ export function StatusFilterBar({ counts, overdueCount, active, onChange }: Stat
       className={[styles.filter, active === filter.key ? styles.active : ''].join(' ')}
       onClick={() => onChange(filter.key)}
     >
-      <span className={styles.count}>{valueFor(filter.key)}</span>
-      <span className={styles.label}>{filter.label}</span>
+      <div className={styles.content}>
+        <span className={styles.label}>{filter.label}</span>
+        <span className={styles.count}>{valueFor(filter.key)}</span>
+      </div>
     </button>
   );
 

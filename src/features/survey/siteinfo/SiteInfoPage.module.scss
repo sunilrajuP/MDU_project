@@ -1,0 +1,61 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+}
+
+.context {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-3 $space-4 $space-4;
+}
+
+.heading {
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+}
+
+// Single column on mobile; two columns from tablet (matches the Figma row pairs).
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $space-3;
+
+  @include tablet-up {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.full {
+  @include tablet-up {
+    grid-column: 1 / -1;
+  }
+}
+
+.wide {
+  width: 100%;
+}
+
+.actionBar {
+  position: sticky;
+  bottom: calc(#{$bottom-nav-height} + #{$space-2});
+  z-index: 1;
+  padding: $space-2 0;
+  background: $color-surface-muted;
+
+  @include tablet-up {
+    bottom: 0;
+  }
+}

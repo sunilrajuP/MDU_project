@@ -4,7 +4,13 @@ import { ManagerLayout } from '@/features/manager/ManagerLayout';
 import { ManagerDashboardPage } from '@/features/manager/ManagerDashboardPage';
 import { CreateJobPage } from '@/features/createJob/CreateJobPage';
 import { JobDetailsPage } from '@/features/jobs/JobDetailsPage';
-import { SurveyorHome } from '@/features/stubs/SurveyorHome';
+import { SurveyorLayout } from '@/features/survey/layout/SurveyorLayout';
+import { RunbookPage } from '@/features/survey/runbook/RunbookPage';
+import { MyJobsPage } from '@/features/survey/jobs/MyJobsPage';
+import { JobOverviewPage } from '@/features/survey/overview/JobOverviewPage';
+import { MapPage } from '@/features/survey/overview/MapPage';
+import { SiteInfoPage } from '@/features/survey/siteinfo/SiteInfoPage';
+import { AccountPage } from '@/features/survey/account/AccountPage';
 import { QcHome } from '@/features/stubs/QcHome';
 import { DesignerHome } from '@/features/stubs/DesignerHome';
 import { RequireRole } from './guards';
@@ -38,14 +44,39 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Out of scope for this task — stubbed only because nav/role-home already reference them.
+  // The runbook has its own header (back arrow + connection pill), so it sits outside SurveyorLayout.
+  {
+    path: PATHS.SURVEYOR_JOB_RUNBOOK_ROUTE,
+    element: (
+      <RequireRole roles={['Surveyor']}>
+        <RunbookPage />
+      </RequireRole>
+    ),
+  },
   {
     path: PATHS.SURVEYOR_ROOT,
     element: (
       <RequireRole roles={['Surveyor']}>
-        <SurveyorHome />
+        <SurveyorLayout />
       </RequireRole>
     ),
+    children: [
+      { index: true, element: <MyJobsPage /> },
+      { path: PATHS.SURVEYOR_ACCOUNT.slice(PATHS.SURVEYOR_ROOT.length + 1), element: <AccountPage /> },
+      {
+        path: PATHS.SURVEYOR_JOB_OVERVIEW_ROUTE.slice(PATHS.SURVEYOR_ROOT.length + 1),
+        element: <JobOverviewPage />,
+      },
+      {
+        path: PATHS.SURVEYOR_JOB_MAP_ROUTE.slice(PATHS.SURVEYOR_ROOT.length + 1),
+        element: <MapPage />,
+      },
+      {
+        path: PATHS.SURVEYOR_JOB_SITE_INFO_ROUTE.slice(PATHS.SURVEYOR_ROOT.length + 1),
+        element: <SiteInfoPage />,
+      },
+      { path: '*', element: <Navigate to={PATHS.SURVEYOR_ROOT} replace /> },
+    ],
   },
   {
     path: PATHS.QC_ROOT,

@@ -271,7 +271,7 @@ async function requestJson<T>(
   } catch {
     const error: ApiErrorShape = {
       status: 0,
-      message: "Unable to reach the server. Check your connection.",
+      message: "Unable to connect to the server. Please try again in a few moments.",
     };
     return { error };
   }
@@ -279,13 +279,15 @@ async function requestJson<T>(
   const body = await res.json().catch(() => null);
 
   if (!res.ok) {
+    const backendMessage = (typeof body?.error === "string" && body.error)
+      || body?.detail || body?.title || body?.message;
+    // Gateway errors, or a server error with no message, mean the backend is unavailable.
+    const serverUnavailable = [502, 503, 504].includes(res.status) || (res.status >= 500 && !backendMessage);
     const error: ApiErrorShape = {
       status: res.status,
-      message: String(
-        (typeof body?.error === "string" && body.error)
-          || body?.detail || body?.title || body?.message
-          || "Request failed. Please try again.",
-      ),
+      message: serverUnavailable
+        ? "Unable to connect to the server. Please try again in a few moments."
+        : String(backendMessage || "Request failed. Please try again."),
     };
     return { error };
   }
@@ -346,7 +348,7 @@ async function refreshSession(
   }
 }
 
-async function apiRequest<T>(
+export async function apiRequest<T>(
   path: string,
   dispatch: Dispatch,
   init: RequestOptions = { method: "GET" },

@@ -102,12 +102,6 @@ export function AddressAutocomplete({ label, value, selected, required, onChange
           }}
           onKeyDown={onKeyDown}
         />
-        <span className={field.icon} aria-hidden>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="m8.5 10.5 3.5 3.5 3.5-3.5" />
-          </svg>
-        </span>
 
         {showList && (
           <ul id={listId} role="listbox" className={styles.list}>

@@ -1,0 +1,15 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+
+  // Wide screens: the eight cards sit in two columns.
+  @include desktop-up {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}

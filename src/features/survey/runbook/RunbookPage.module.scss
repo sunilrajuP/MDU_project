@@ -1,0 +1,51 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $space-3;
+  margin-bottom: $space-3;
+}
+
+.jobTitle {
+  margin: 0;
+  font-size: $font-size-xl;
+  font-weight: 600;
+  line-height: 1.2;
+  color: $color-text-primary;
+  overflow-wrap: anywhere;
+}
+
+.jobSubtitle {
+  margin: $space-1 0 0;
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}
+
+.listHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-3;
+  margin: $space-4 0 $space-2;
+}
+
+.listTitle {
+  font-size: $font-size-md;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.listHint {
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+  text-align: right;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}

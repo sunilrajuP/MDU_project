@@ -1,0 +1,98 @@
+@use '../../../../styles/tokens' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-3 $space-4 $space-4;
+  border-radius: $radius-md;
+  background: linear-gradient(
+    90deg,
+    $color-brand-gradient-start 0%,
+    $color-brand-gradient-mid1 40%,
+    $color-brand-gradient-mid2 75%,
+    $color-brand-gradient-end 100%
+  );
+  color: $color-text-inverse;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.ring {
+  position: relative;
+  flex: none;
+  width: 48px;
+  height: 48px;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.track,
+.value {
+  fill: none;
+  stroke-width: 3;
+}
+
+.track {
+  stroke: rgba($color-text-inverse, 0.25);
+}
+
+.value {
+  stroke: $color-text-inverse;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.percent {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: $font-size-xs;
+  font-weight: 700;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+}
+
+.eyebrow {
+  font-size: $font-size-2xs;
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.headline {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  line-height: $line-height-compact;
+}
+
+.next {
+  @include focus-visible-ring;
+  min-height: 44px;
+  padding: $space-2 $space-3;
+  border: none;
+  border-radius: $radius-sm;
+  background: rgba($color-text-inverse, 0.14);
+  color: $color-text-inverse;
+  font-size: $font-size-md;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($color-text-inverse, 0.22);
+  }
+}

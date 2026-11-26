@@ -1,0 +1,22 @@
+@use '../../../styles/tokens' as *;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $space-1;
+  font-size: $font-size-xs;
+  line-height: $line-height-compact;
+  white-space: nowrap;
+}
+
+.ok {
+  color: $color-pill-approved-text;
+}
+
+.pending {
+  color: $color-pill-neutral-text;
+}
+
+.failed {
+  color: $color-pill-overdue-text;
+}

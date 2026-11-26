@@ -1,0 +1,23 @@
+diff --git a/src/store/index.ts b/src/store/index.ts
+index 06eeed2..dbb7b44 100644
+--- a/src/store/index.ts
++++ b/src/store/index.ts
+@@ -1,5 +1,6 @@
+ import { configureStore } from '@reduxjs/toolkit';
+ import { baseApi } from '@/api/baseApi';
++import { surveyorApi } from '@/api/surveyorApi';
+ import authReducer from '@/features/auth/authSlice';
+ import jobsReducer from '@/features/jobs/jobsSlice';
+ import teamReducer from '@/features/teamlead/teamSlice';
+@@ -10,8 +11,10 @@ export const store = configureStore({
+     jobs: jobsReducer,
+     team: teamReducer,
+     [baseApi.reducerPath]: baseApi.reducer,
++    [surveyorApi.reducerPath]: surveyorApi.reducer,
+   },
+-  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(baseApi.middleware),
++  middleware: (getDefaultMiddleware) =>
++    getDefaultMiddleware().concat(baseApi.middleware, surveyorApi.middleware),
+ });
+ 
+ export type RootState = ReturnType<typeof store.getState>;

@@ -3,6 +3,7 @@
 import Dexie, { type EntityTable } from 'dexie';
 import type { Job, Team, User } from '@/types/domain';
 import type { JobSyncEntry } from '@/types/jobSync';
+import type { MarkupData, MediaContext, MediaKind, SectionKey } from '@/types/surveyor';
 
 export interface AuthSessionRecord {
   id: 'current';
@@ -22,7 +23,49 @@ export interface SurveySessionRecord {
   photos: unknown[];
 }
 
+/**
+ * Captured evidence. Blobs live here (never in Redux). `originalBlob` is immutable once written;
+ * markup produces a separate `markedBlob` and keeps vector `markup` for re-editing.
+ */
+export interface MediaRecord {
+  id: string;
+  jobRef: string;
+  kind: MediaKind;
+  mimeType: string;
+  context: MediaContext;
+  /** `${sectionKey}:${itemCode}[:floor][:unit]`, indexed to load an item's evidence quickly. */
+  itemKey: string;
+  capturedAt: string;
+  capturedBy: string;
+  durationSec: number | null;
+  originalBlob: Blob;
+  markedBlob?: Blob;
+  markup?: MarkupData;
+  syncStatus: 'pending' | 'synced' | 'failed';
+}
+
+/**
+ * Local copy of one runbook section. Dexie is the source of truth while editing; `dirty` means the latest
+ * edit has not been accepted by the server yet (offline-first).
+ */
+export interface RunbookDraftRecord {
+  /** `${jobRef}:${key}` */
+  id: string;
+  jobRef: string;
+  key: SectionKey;
+  data: Record<string, unknown>;
+  completed: boolean;
+  /** Server revision this draft was based on. */
+  baseRev: number;
+  /** The server already knows this section is complete. */
+  serverCompleted: boolean;
+  dirty: boolean;
+  updatedAt: string;
+}
+
 export class MduDatabase extends Dexie {
+  runbookDrafts!: EntityTable<RunbookDraftRecord, 'id'>;
+  media!: EntityTable<MediaRecord, 'id'>;
   jobs!: EntityTable<Job, 'id'>;
   users!: EntityTable<User, 'id'>;
   teams!: EntityTable<Team, 'teamLeadUserId'>;
@@ -71,6 +114,16 @@ export class MduDatabase extends Dexie {
         };
         await tx.table('syncQueue').add(entry);
       }
+    });
+
+    // Version 3 — Surveyor evidence (photos/videos + markup). Additive: no existing table changes.
+    this.version(3).stores({
+      media: 'id, jobRef, itemKey, [jobRef+itemKey], syncStatus',
+    });
+
+    // Version 4 — Surveyor runbook drafts (offline-first section data). Additive.
+    this.version(4).stores({
+      runbookDrafts: 'id, jobRef',
     });
   }
 }

@@ -1,0 +1,25 @@
+@use '../../../styles/tokens' as *;
+@use '../../../styles/mixins' as *;
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.wide {
+  width: 100%;
+}
+
+// Anchored "Confirm Site Location" bar, above the mobile bottom nav.
+.actionBar {
+  position: sticky;
+  bottom: calc(#{$bottom-nav-height} + #{$space-2});
+  z-index: 1;
+  padding: $space-2 0;
+  background: $color-surface-muted;
+
+  @include tablet-up {
+    bottom: 0;
+  }
+}

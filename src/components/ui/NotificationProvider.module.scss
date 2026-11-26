@@ -3,14 +3,14 @@
 
 .viewport {
   position: fixed;
-  top: $space-4;
   right: $space-4;
-  left: $space-4;
+  bottom: $space-4;
+  left: auto;
+  width: calc(100% - #{$space-8});
   z-index: $z-index-dialog;
   pointer-events: none;
 
   @include tablet-up {
-    left: auto;
     width: $calendar-max-width;
     max-width: calc(100% - #{$space-8});
   }

@@ -13,15 +13,15 @@ $color-purple-600: #7667ed;
 $color-purple-500: #8a7fff;
 $color-purple-100: #302d50;
 $color-purple-accent: #27253f;
-$color-navy-900: #10121a;
+$color-navy-900: rgb(26,26,36);
 $color-navy-800: #1a1e2b;
 $color-nav-active: #b0a7ff; // sidebar active nav icon/label
 
 $color-surface: #1C2130;
-$color-surface-muted: #10121a; // page background
+$color-surface-muted: rgb(26,26,36);; // page background
 $color-border: #303548;
 $color-login-background-top: #292541;
-$color-login-background-bottom: #10121a;
+$color-login-background-bottom: rgb(26,26,36);;
 $color-text-primary: #e8e9f4; // headings
 $color-text-secondary: #a5a9b8; // body/labels/addresses
 $color-text-faint: #81889a; // timestamps, hints, placeholders

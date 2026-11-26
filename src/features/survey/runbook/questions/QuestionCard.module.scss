@@ -1,0 +1,249 @@
+@use '../../../../styles/tokens' as *;
+@use '../../../../styles/mixins' as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-sm;
+  background: $color-surface;
+  overflow: hidden;
+}
+
+.invalid {
+  border-color: $color-danger;
+}
+
+// Checklist layout: icon, optional number, title, chip, chevron on one row.
+.header {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3;
+  background: $color-surface-muted;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: $font-size-md;
+  font-weight: 650;
+  line-height: $line-height-compact;
+  color: $color-text-primary;
+  overflow-wrap: anywhere;
+}
+
+.statusIcon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: $font-size-sm;
+  font-weight: 700;
+}
+
+.icon_success {
+  background: $color-pill-approved-bg;
+  color: $color-pill-approved-text;
+}
+
+.icon_warning {
+  background: $color-pill-neutral-bg;
+  color: $color-pill-neutral-text;
+}
+
+.icon_danger {
+  background: $color-pill-overdue-bg;
+  color: $color-pill-overdue-text;
+}
+
+.icon_neutral {
+  background: $color-pill-not-started-bg;
+  color: $color-pill-not-started-text;
+}
+
+.number {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: $color-pill-neutral-bg;
+  color: $color-pill-neutral-text;
+  font-size: $font-size-xs;
+  font-weight: 700;
+}
+
+.chevron {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-secondary;
+  cursor: pointer;
+}
+
+// External layout: large title, meta line, chip + chevron row, N/A toggle.
+.external {
+  padding: $space-4;
+  gap: $space-2;
+  background: $color-surface;
+}
+
+.externalTitle {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: 650;
+  line-height: $line-height-compact;
+  color: $color-text-primary;
+}
+
+.meta {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+  margin-top: $space-2;
+}
+
+.naRow {
+  display: flex;
+}
+
+.na {
+  @include focus-visible-ring;
+  padding: $space-1 $space-2;
+  border: none;
+  border-radius: $radius-xs;
+  background: $color-pill-not-started-bg;
+  color: $color-pill-not-started-text;
+  font-size: $font-size-xs;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.naOn {
+  background: $color-purple-100;
+  color: $color-purple-500;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-3;
+}
+
+.external .body {
+  padding: $space-2 0 0;
+}
+
+.fieldBlock {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.fieldLabel {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.hint,
+.footnote {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}
+
+.footnote {
+  font-weight: 650;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.error {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-danger;
+}
+
+.reference {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-2 $space-3;
+  border-radius: $radius-sm;
+  background: $color-pill-neutral-bg;
+  color: $color-pill-neutral-text;
+  font-size: $font-size-sm;
+}
+
+.referenceThumb {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 48px;
+  border-radius: $radius-xs;
+  background: $color-navy-800;
+  color: $color-text-faint;
+}
+
+.evidence {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.confirm {
+  width: 100%;
+}
+
+.confirmed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-3;
+  border-radius: $radius-sm;
+  background: $color-pill-approved-bg;
+  color: $color-pill-approved-text;
+  font-size: $font-size-sm;
+}
+
+.reopen {
+  @include focus-visible-ring;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

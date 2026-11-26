@@ -1,0 +1,48 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
+
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+}
+
+.chip {
+  @include touch-target;
+  @include focus-visible-ring;
+  min-width: 64px;
+  padding: 0 $space-4;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  background: $color-surface-muted;
+  color: $color-text-secondary;
+  font-size: $font-size-md;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover:not(:disabled):not(.selected) {
+    background: $color-purple-accent;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.selected {
+  font-weight: 650;
+}
+
+.brand {
+  background: $color-purple-700;
+  border-color: $color-purple-500;
+  color: $color-text-inverse;
+}
+
+.warning {
+  background: $color-pill-neutral-bg;
+  border-color: $color-pill-neutral-text;
+  color: $color-pill-neutral-text;
+}

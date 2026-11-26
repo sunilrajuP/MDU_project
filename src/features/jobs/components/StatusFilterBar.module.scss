@@ -25,15 +25,16 @@
   }
 }
 
+
 .filter {
   @include focus-visible-ring;
+  container-type: inline-size;   // lets .content respond to the button's own width
   display: flex;
   flex: 1 1 0;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: $space-1;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
-  height: 62px;
+  min-height: 62px;              // was fixed height; allows 2-line labels
   padding: $space-2;
   border-radius: $radius-md;
   border: 1px solid $color-border;
@@ -43,23 +44,53 @@
   text-align: left;
 }
 
-.active {
-  border-color: $color-purple-700;
-  background: $color-purple-700;
+.content {
+  display: flex;
+  flex-direction: column;        // narrow: count on top, label below
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  text-align: center;
+
+  // wide enough: count left, label right
+  @container (min-width: 120px) {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: $space-2;
+    text-align: right;
+  }
 }
 
 .count {
+  flex-shrink: 0;
   font-size: $font-size-lg;
   font-weight: 600;
+  line-height: 1;
   color: $color-text-primary;
 }
 
 .label {
-  font-size: $font-size-2xs;
+  min-width: 0;
+  font-size: $font-size-md;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
   color: $color-text-secondary;
 }
 
+
+
+.active,
+.filter:hover {
+  border-color: $color-purple-700;
+  background: $color-purple-700;
+}
+
+
+
 .active .count,
-.active .label {
+.active .label,
+.filter:hover .count,
+.filter:hover .label {
   color: $color-text-inverse;
 }

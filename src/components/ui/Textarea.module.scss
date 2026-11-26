@@ -1,0 +1,46 @@
+@use '../../styles/tokens' as *;
+@use '../../styles/mixins' as *;
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $color-text-secondary;
+}
+
+.textarea {
+  @include focus-visible-ring;
+  min-height: $touch-target-min;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid $color-border;
+  border-radius: $radius-sm;
+  padding: $space-3;
+  font-size: $font-size-base;
+  line-height: $line-height-compact;
+  background: $color-surface;
+  color: $color-text-primary;
+
+  &::placeholder {
+    color: $color-text-faint;
+  }
+}
+
+.invalid {
+  border-color: $color-danger;
+}
+
+.hint {
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}
+
+.error {
+  font-size: $font-size-xs;
+  color: $color-danger;
+}

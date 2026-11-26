@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Pencil, ChevronRight } from 'lucide-react';
 import type { Job } from '@/types/domain';
@@ -24,6 +25,9 @@ export function JobCard({
   createdByName,
   latestSurveyorName,
 }: JobCardProps) {
+  const [addressHovered, setAddressHovered] = useState(false);
+  const [addressFocused, setAddressFocused] = useState(false);
+  const [tooltipDismissed, setTooltipDismissed] = useState(false);
   const creatorName = createdByName?.trim() || job.createdByName?.trim();
   const leadName = assigneeTeamLead ?? job.assigneeName
     ?? (job.leadAssignmentKnown === false ? 'Not available' : 'Unassigned');
@@ -39,7 +43,22 @@ export function JobCard({
         <div className={styles.main}>
           <div className={styles.identity}>
             <span className={styles.siteName} title={job.siteName}>{job.siteName}</span>
-            <span className={styles.address} title={job.address}>{job.address}</span>
+            <span
+              className={styles.addressContainer}
+              tabIndex={0}
+              onMouseEnter={() => { setAddressHovered(true); setTooltipDismissed(false); }}
+              onMouseLeave={() => setAddressHovered(false)}
+              onFocus={() => { setAddressFocused(true); setTooltipDismissed(false); }}
+              onBlur={() => setAddressFocused(false)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setTooltipDismissed(true);
+              }}
+            >
+              <span className={styles.address}>{job.address}</span>
+              {(addressHovered || addressFocused) && !tooltipDismissed && (
+                <span className={styles.addressTooltip} role="tooltip" aria-hidden="true">{job.address}</span>
+              )}
+            </span>
           </div>
 
           {/* Two-column grid: left = created/dates, right = lead/surveyor */}
@@ -106,7 +125,6 @@ export function JobCard({
             to={editPath}
             className={styles.viewMore}
             aria-label={`Edit ${job.siteName}`}
-            title="Edit job"
           >
             <Pencil size={12} aria-hidden="true" />
             Edit Job 

@@ -1,0 +1,54 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding: $space-4;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-md;
+  background: $color-surface;
+  min-width: 0;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+  overflow-wrap: anywhere;
+}
+
+.toggle {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: $radius-sm;
+  background: transparent;
+  color: $color-text-secondary;
+  cursor: pointer;
+}
+
+.subtitle {
+  margin: 0;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}

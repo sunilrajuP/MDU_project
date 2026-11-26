@@ -1,0 +1,101 @@
+@use '../../../../styles/tokens' as *;
+@use '../../../../styles/mixins' as *;
+
+.row {
+  min-width: 0;
+  border: $border-width-default solid $color-border;
+  border-radius: $radius-sm;
+  background: $color-surface;
+  overflow: hidden;
+  scroll-margin-top: 72px; // clears the sticky runbook header when scrolled to
+}
+
+.outlined {
+  border-color: $color-purple-500;
+}
+
+.heading {
+  margin: 0;
+  font: inherit;
+}
+
+.header {
+  @include focus-visible-ring;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+  width: 100%;
+  padding: $space-3;
+  border: none;
+  background: transparent;
+  color: $color-text-primary;
+  text-align: left;
+  cursor: pointer;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+}
+
+.icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: $color-navy-800;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  font-weight: 700;
+}
+
+.iconDone {
+  background: $color-pill-approved-bg;
+  color: $color-pill-approved-text;
+}
+
+.iconCurrent {
+  background: $color-purple-100;
+  color: $color-purple-500;
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  font-size: $font-size-base;
+  font-weight: 650;
+  line-height: $line-height-compact;
+  overflow-wrap: anywhere;
+}
+
+.subtitle {
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  margin-top: $space-1;
+}
+
+.body {
+  padding: $space-4;
+  border-top: $border-width-default solid $color-border;
+}
+
+// A disabled fieldset makes the whole section read-only after submission.
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}

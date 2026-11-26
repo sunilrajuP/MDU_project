@@ -1,0 +1,17 @@
+@use '../../../../../styles/tokens' as *;
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.complete {
+  width: 100%;
+}
+
+.hint {
+  margin: 0;
+  font-size: $font-size-xs;
+  color: $color-text-faint;
+}

@@ -1,0 +1,34 @@
+@use '../../../../../styles/tokens' as *;
+@use '../../../../../styles/mixins' as *;
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+}
+
+.unitsHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.heading {
+  margin: 0;
+  font-size: $font-size-base;
+  font-weight: 650;
+  color: $color-text-primary;
+}
+
+.unitsCount {
+  padding: $space-1 $space-3;
+  border-radius: $radius-pill;
+  background: $color-surface;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+}
+
+.addUnit {
+  width: 100%;
+}

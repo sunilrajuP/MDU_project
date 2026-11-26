@@ -61,6 +61,29 @@ afterEach(() => {
 });
 
 describe('job card metadata loading', () => {
+  it('reveals the full address on hover or focus and dismisses it with Escape', () => {
+    const address = '10 A Very Long Street Address, Building 123, Example Town';
+    render(
+      <MemoryRouter>
+        <JobCard job={{ ...localJob, address }} detailsPath="/" />
+      </MemoryRouter>,
+    );
+
+    const addressText = screen.getByText(address);
+    expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull();
+    fireEvent.mouseEnter(addressText.parentElement!);
+    expect(screen.getByRole('tooltip', { hidden: true }).textContent).toBe(address);
+    fireEvent.mouseLeave(addressText.parentElement!);
+    expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull();
+    fireEvent.focus(addressText.parentElement!);
+    expect(screen.getByRole('tooltip', { hidden: true }).textContent).toBe(address);
+    fireEvent.keyDown(addressText.parentElement!, { key: 'Escape' });
+    expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull();
+    fireEvent.blur(addressText.parentElement!);
+    fireEvent.focus(addressText.parentElement!);
+    expect(screen.getByRole('tooltip', { hidden: true }).textContent).toBe(address);
+  });
+
   it('renders list metadata without detail requests, and loads only the selected job on navigation', async () => {
     render(
       <Provider store={store}>
