@@ -56,7 +56,7 @@ function acceptCards(data: BackendSurvey, cards: SurveyCardAnswers[]) {
     for (const answer of card.answers) {
       const item = section.items.find((entry) => entry.id === answer.itemId)!;
       Object.assign(item, {
-        responseValue: answer.value, isFlagged: answer.isFlagged, note: answer.note, isAnswered: true,
+        responseValue: answer.value || null, isFlagged: answer.isFlagged, note: answer.note, isAnswered: !!answer.value,
       });
     }
   }
@@ -71,13 +71,14 @@ function makeStore() {
   return store;
 }
 
-function renderPage(store: ReturnType<typeof makeStore>, startSurvey = false) {
+function renderPage(store: ReturnType<typeof makeStore>, startSurvey = false, strict = false) {
   return render(
     <Provider store={store}>
       <MemoryRouter initialEntries={[{ pathname: '/survey/jobs/MDU-000006/runbook', state: { startSurvey } }]}>
         <Routes><Route path="/survey/jobs/:jobRef/runbook" element={<BackendRunbookPage />} /></Routes>
       </MemoryRouter>
     </Provider>,
+    { reactStrictMode: strict },
   );
 }
 
@@ -189,6 +190,11 @@ describe('backend survey runbook', () => {
 
   it('loads by numeric job ID and sends selected answers to the real section endpoint', async () => {
     const data = survey();
+    data.sections[0].items.push({
+      id: 13, sectionId: 1, code: 'SITE_NAME', prompt: 'Site name', answerType: 'TEXT',
+      isRequired: false, minPhotos: 0, flagOn: null, sortOrder: 3, responseValue: null,
+      isAnswered: false, isFlagged: false, note: null,
+    });
     const requests: { url: string; method: string; body: unknown }[] = [];
     vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
       const body = init?.body ? JSON.parse(String(init.body)) : undefined;
@@ -208,7 +214,10 @@ describe('backend survey runbook', () => {
     expect(requests.find((request) => request.method === 'PUT')).toEqual({
       url: '/api/jobs/6/survey-sessions/session-1/sections/1/answers',
       method: 'PUT',
-      body: [{ sectionId: 1, answers: [{ itemId: 11, value: 'true', isFlagged: false, note: '' }] }],
+      body: [{ sectionId: 1, answers: [
+        { itemId: 11, value: 'true', isFlagged: false, note: '' },
+        { itemId: 13, value: '', isFlagged: false, note: '' },
+      ] }],
     });
     await waitFor(async () => expect(Object.keys((await backendSurveyRepo.get('7', 'MDU-000006'))!.pending)).toHaveLength(0));
     fireEvent.click(screen.getByRole('button', { name: /Internal Network/ }));
@@ -246,7 +255,7 @@ describe('backend survey runbook', () => {
     await waitFor(async () => expect(Object.keys((await backendSurveyRepo.get('7', 'MDU-000006'))!.pending)).toHaveLength(0), { timeout: 5000 });
   });
 
-  it('moves to the next card and sends all preceding answers in card order', async () => {
+  it('sends only the target section when moving to the next card', async () => {
     const data = survey();
     data.sections[1].repeatPerFloor = false;
     data.sections.push({ id: 9, code: 'SIGN_OFF', title: 'Sign off', sortOrder: 3, repeatPerFloor: false, isCompleted: false, items: [] });
@@ -275,10 +284,7 @@ describe('backend survey runbook', () => {
     await waitFor(() => expect(requests).toHaveLength(2));
     expect(requests[1]).toEqual({
       url: '/api/jobs/6/survey-sessions/session-1/sections/4/answers',
-      body: [
-        { sectionId: 1, answers: [{ itemId: 11, value: 'true', isFlagged: false, note: '' }] },
-        { sectionId: 4, answers: [{ itemId: 41, value: 'Level 1', isFlagged: false, note: '' }] },
-      ],
+      body: [{ sectionId: 4, answers: [{ itemId: 41, value: 'Level 1', isFlagged: false, note: '' }] }],
     });
   });
 
@@ -314,12 +320,27 @@ describe('backend survey runbook', () => {
     expect((await backendSurveyRepo.get('7', 'MDU-000006'))?.pending['1:11'].value).toBe('N/A');
   });
 
-  it('retains local answers if the server returns a different session', async () => {
+  it('opens the current session and discards unsynced answers from an older session', async () => {
     const data = survey();
     await backendSurveyRepo.receive('7', 'MDU-000006', data);
     await backendSurveyRepo.edit('7', 'MDU-000006', 1, { itemId: 11, value: 'true', isFlagged: false, note: '' });
-    await expect(backendSurveyRepo.receive('7', 'MDU-000006', { ...data, sessionId: 'other' })).rejects.toThrow('session changed');
-    expect((await backendSurveyRepo.get('7', 'MDU-000006'))?.pending['1:11'].value).toBe('true');
+    const fetchMock = vi.fn(async () => Response.json({ ...data, sessionId: 'other' }));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(makeStore(), false, true);
+    fireEvent.click(await screen.findByRole('button', { name: /WHS Check/, expanded: false }));
+    expect(screen.getByText(/Unsynced answers from an earlier survey session were discarded/)).toBeTruthy();
+    expect(within(screen.getByRole('radiogroup', { name: 'PPE confirmed?' })).getByRole('radio', { name: 'Yes' }).getAttribute('aria-checked')).toBe('false');
+    expect(await backendSurveyRepo.get('7', 'MDU-000006')).toMatchObject({ survey: { sessionId: 'other' }, pending: {} });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('retains pending answers when the server session has not changed', async () => {
+    const data = survey();
+    const answer = { itemId: 11, value: 'true', isFlagged: false, note: '' };
+    await backendSurveyRepo.receive('7', 'MDU-000006', data);
+    await backendSurveyRepo.edit('7', 'MDU-000006', 1, answer);
+    await backendSurveyRepo.receive('7', 'MDU-000006', data);
+    expect((await backendSurveyRepo.get('7', 'MDU-000006'))?.pending['1:11']).toEqual(answer);
   });
 
   it('does not clear a newer local edit when an older save is acknowledged', async () => {

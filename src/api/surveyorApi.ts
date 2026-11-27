@@ -187,7 +187,7 @@ export const surveyorApi = createApi({
           const section = survey.sections.find((entry) => entry.id === card.sectionId);
           return !section || card.answers.some((answer) => {
             const item = section.items.find((entry) => entry.id === answer.itemId);
-            return !item || item.responseValue !== answer.value || item.isFlagged !== answer.isFlagged ||
+            return !item || (item.responseValue ?? '') !== answer.value || item.isFlagged !== answer.isFlagged ||
               (item.note ?? '') !== answer.note;
           });
         })) {
