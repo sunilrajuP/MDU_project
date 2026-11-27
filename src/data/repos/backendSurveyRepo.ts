@@ -10,17 +10,18 @@ export const backendSurveyRepo = {
     return getDb().backendSurveys.get(recordId(userId, jobRef));
   },
 
-  async receive(userId: string, jobRef: string, survey: BackendSurvey): Promise<BackendSurveyRecord> {
+  async receive(userId: string, jobRef: string, survey: BackendSurvey): Promise<{
+    record: BackendSurveyRecord;
+    discardedPending: boolean;
+  }> {
     const db = getDb();
     return db.transaction('rw', db.backendSurveys, async () => {
       const id = recordId(userId, jobRef);
       const existing = await db.backendSurveys.get(id);
-      if (existing && existing.survey.sessionId !== survey.sessionId && Object.keys(existing.pending).length) {
-        throw new Error('The survey session changed while local answers are pending. They have been retained on this device.');
-      }
+      const discardedPending = !!existing && existing.survey.sessionId !== survey.sessionId && Object.keys(existing.pending).length > 0;
       const record = { id, survey, pending: existing?.survey.sessionId === survey.sessionId ? existing.pending : {} };
       await db.backendSurveys.put(record);
-      return record;
+      return { record, discardedPending };
     });
   },
 

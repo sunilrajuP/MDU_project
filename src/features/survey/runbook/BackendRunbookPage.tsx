@@ -47,19 +47,14 @@ function answerFor(record: BackendSurveyRecord, section: SurveySection, item: Su
   };
 }
 
-function cardsThrough(record: BackendSurveyRecord, sectionId: number): SurveyCardAnswers[] {
-  const sections = [...record.survey.sections].sort((a, b) => a.sortOrder - b.sortOrder);
-  const end = sections.findIndex((section) => section.id === sectionId);
-  if (end < 0) throw new Error('The survey section could not be found.');
-  return sections.slice(0, end + 1).flatMap((section) => {
-    const answers = section.repeatPerFloor ? [] : section.items
-      .filter((item) => (item.answerType === 'TEXT' || item.answerType === 'YES_NO_NA') &&
-        (pendingAnswer(record, section.id, item.id) !== undefined || item.isAnswered))
-      .map((item) => answerFor(record, section, item));
-    return section.id === sectionId || section.isCompleted || answers.length > 0
-      ? [{ sectionId: section.id, answers }]
-      : [];
-  });
+function cardsForSection(record: BackendSurveyRecord, sectionId: number): SurveyCardAnswers[] {
+  const section = record.survey.sections.find((entry) => entry.id === sectionId);
+  if (!section) throw new Error('The survey section could not be found.');
+  const answers = section.repeatPerFloor ? [] : [...section.items]
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .filter((item) => item.answerType === 'TEXT' || item.answerType === 'YES_NO_NA')
+    .map((item) => answerFor(record, section, item));
+  return [{ sectionId: section.id, answers }];
 }
 
 function Question({
@@ -131,6 +126,7 @@ function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: s
   const [syncError, setSyncError] = useState('');
   const [storageError, setStorageError] = useState('');
   const [legacyDrafts, setLegacyDrafts] = useState(false);
+  const [discardedPending, setDiscardedPending] = useState(false);
   const [busy, setBusy] = useState(false);
   const [writing, setWriting] = useState(false);
   const [expanded, setExpanded] = useState<SectionKey | null>(null);
@@ -181,7 +177,10 @@ function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: s
         if (active) setLegacyDrafts(oldDrafts.length > 0);
         if (query.data) {
           const next = await backendSurveyRepo.receive(userId!, jobRef, query.data);
-          if (active) setCurrent(next);
+          if (active) {
+            setCurrent(next.record);
+            if (next.discardedPending) setDiscardedPending(true);
+          }
         } else if (query.isError) {
           const status = 'status' in query.error ? query.error.status : undefined;
           if (status === 0) {
@@ -249,7 +248,7 @@ function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: s
           .map((item) => pendingAnswer(current!, section.id, item.id))
           .filter((answer): answer is SurveyAnswer => answer !== undefined);
         if (!answers.length && section.id !== requestedSectionId) continue;
-        const cards = cardsThrough(current, section.id);
+        const cards = cardsForSection(current, section.id);
         const response = await saveAnswers({
           jobId: current.survey.jobId,
           userId,
@@ -318,6 +317,7 @@ function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: s
         </div>
       </div>
       {legacyDrafts && <Callout tone="warning">Earlier runbook drafts remain on this device but have not been transferred to the new survey.</Callout>}
+      {discardedPending && <Callout tone="warning">Unsynced answers from an earlier survey session were discarded.</Callout>}
       {readOnly && pendingCount > 0 && <Callout tone="warning">This survey is read-only. Pending local answers remain on this device and cannot be synced.</Callout>}
       {storageError && <Callout tone="danger">Could not save your answers locally: {storageError}. Keep this page open. <Button type="button" onClick={() => void retryStorage()}>Retry local save</Button></Callout>}
       {syncError && <Callout tone="danger">Answers remain saved locally but could not sync: {syncError} <Button type="button" onClick={() => void sync()}>Retry</Button></Callout>}

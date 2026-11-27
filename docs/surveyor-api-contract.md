@@ -7,20 +7,29 @@ JSON body, then load `GET /api/jobs/{jobId}/survey`. The survey response may ide
 session with either a numeric ID or a string ID; the client normalizes it to a string.
 
 The active runbook sends `PUT /api/jobs/{jobId}/survey-sessions/{sessionId}/sections/{sectionId}/answers`
-with a JSON array, for example:
+with a JSON array containing only the section identified in the path, for example:
 
 ```json
 [
-  { "sectionId": 1, "answers": [{ "itemId": 11, "value": "true", "isFlagged": false, "note": "" }] },
-  { "sectionId": 2, "answers": [{ "itemId": 21, "value": "Example", "isFlagged": false, "note": "" }] }
+  {
+    "sectionId": 1,
+    "answers": [
+      { "itemId": 1, "value": "true", "isFlagged": false, "note": "" },
+      { "itemId": 2, "value": "", "isFlagged": false, "note": "" },
+      { "itemId": 3, "value": "N/A", "isFlagged": false, "note": "Not applicable at this site" }
+    ]
+  }
 ]
 ```
 
-The path identifies the card being saved. The array includes that card and preceding cards with
-answers or a completed status, in survey order. The same format is used for autosave and retry.
-The backend must accept the array, save every included card, and return the full survey with the
-sent values confirmed. Failed or unconfirmed answers remain on the device for retry. Photo and
-per-floor answers are not yet supported by this runbook.
+The array includes every supported text or Yes/No/N/A question in that section, including unanswered
+questions sent with an empty `value`. Photo and repeat-per-floor answers are not yet supported by
+this runbook. The same format is used for autosave and retry. The backend must accept the array,
+save the included answers, and return the full survey with the sent values confirmed (an empty
+value may be returned as `null`). Failed or unconfirmed answers remain on the device for retry.
+
+If the server returns a different survey session, the current survey is loaded and unsynced
+answers from the previous session are discarded. Answers from the same session remain pending.
 
 Status: the Surveyor UI is built against mock data behind `VITE_USE_MOCK_SURVEYOR_API=true`. The UI only uses RTK Query hooks, so swapping to these endpoints needs no UI change. This draft covers the pre-runbook screens, the runbook shell, WHS, BFD, External, Internal Network, floor plans, photo/video and sign-off. Question catalogues for WHS, External Network, NBN Design Inputs and BoM are delivered via the config endpoint (section 3), so the backend owns them.
 
