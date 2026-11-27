@@ -79,6 +79,7 @@ export function JobOverviewPage() {
             basemap={basemap}
             onBasemapChange={setBasemap}
             onLocate={gps.locate}
+            location={job.location.latitude || job.location.longitude ? job.location : undefined}
           />
           <div className={styles.legend}>
             <span className={styles.legendItem}>

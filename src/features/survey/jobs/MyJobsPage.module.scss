@@ -7,8 +7,20 @@
   gap: $space-4;
 }
 
+// Summary on the left, filter dropdown pushed to the right on the same row.
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $space-3;
+}
+
+.filter {
+  margin-left: auto;
+}
+
 .summary {
-  margin: $space-2 0 0;
+  margin: 0;
   font-size: $font-size-md;
   font-weight: 600;
   color: $color-text-primary;

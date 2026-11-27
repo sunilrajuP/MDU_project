@@ -19,8 +19,20 @@
   }
 }
 
+.back {
+  @include touch-target;
+  @include focus-visible-ring;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: auto; // pins the arrow to the left while the Network switch stays on the right
+  border-radius: $radius-sm;
+  color: $color-text-primary;
+}
+
 .toolbar {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   min-height: 0;
 

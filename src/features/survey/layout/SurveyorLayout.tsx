@@ -1,6 +1,6 @@
-import { Outlet, matchPath, useLocation } from 'react-router-dom';
+import { Link, Outlet, matchPath, useLocation } from 'react-router-dom';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { BriefcaseBusiness, ListChecks, UserRound } from 'lucide-react';
+import { ArrowLeft, BriefcaseBusiness, ListChecks, UserRound } from 'lucide-react';
 import { AppShell, type NavItem } from '@/layouts/AppShell';
 import { NotificationProvider } from '@/components/ui/NotificationProvider';
 import { useAppSelector } from '@/store/hooks';
@@ -40,6 +40,14 @@ export function SurveyorLayout() {
   if (jobRef) subtitle = `My Jobs / ${jobRef}${job ? ` · ${job.siteName}` : ''}`;
   else if (pathname === PATHS.SURVEYOR_ROOT) subtitle = formatLongDate();
 
+  // Back arrow on Job Overview (-> My Jobs) and Map (-> Job Overview).
+  let backTo: { to: string; label: string } | undefined;
+  if (jobRef && matchPath({ path: PATHS.SURVEYOR_JOB_OVERVIEW_ROUTE, end: true }, pathname)) {
+    backTo = { to: PATHS.SURVEYOR_ROOT, label: 'Back to My Jobs' };
+  } else if (jobRef && matchPath({ path: PATHS.SURVEYOR_JOB_MAP_ROUTE, end: true }, pathname)) {
+    backTo = { to: PATHS.SURVEYOR_JOB_OVERVIEW(jobRef), label: 'Back to Job Overview' };
+  }
+
   const navItems: NavItem[] = [
     { to: PATHS.SURVEYOR_ROOT, label: 'My Jobs', icon: <BriefcaseBusiness size={20} />, end: true },
     ...(jobRef
@@ -64,6 +72,11 @@ export function SurveyorLayout() {
         <div className={styles.page}>
           {/* Dev-only; renders nothing in production builds. */}
           <div className={styles.toolbar}>
+            {backTo && (
+              <Link to={backTo.to} className={styles.back} aria-label={backTo.label}>
+                <ArrowLeft size={22} aria-hidden="true" />
+              </Link>
+            )}
             <NetworkToggle />
           </div>
           <Outlet />

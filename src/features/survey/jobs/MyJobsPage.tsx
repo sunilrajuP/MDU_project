@@ -32,13 +32,18 @@ export function MyJobsPage() {
 
   return (
     <div className={styles.page}>
-      <Select
-        variant="filter"
-        label="Filter jobs"
-        value={filter}
-        onChange={(event) => setFilter(event.target.value as FilterKey)}
-        options={FILTERS}
-      />
+      <div className={styles.toolbar}>
+        {data && <p className={styles.summary}>{summary}</p>}
+        <div className={styles.filter}>
+          <Select
+            variant="filter"
+            label="Filter jobs"
+            value={filter}
+            onChange={(event) => setFilter(event.target.value as FilterKey)}
+            options={FILTERS}
+          />
+        </div>
+      </div>
 
       {isLoading && <p role="status">Loading jobs…</p>}
 
@@ -53,8 +58,6 @@ export function MyJobsPage() {
 
       {data && (
         <>
-          <p className={styles.summary}>{summary}</p>
-
           {isReturnedView && jobs[0] && <ReturnedBanner job={jobs[0]} />}
 
           {jobs.length === 0 ? (

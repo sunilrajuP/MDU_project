@@ -47,7 +47,25 @@ interface SiteInformationDto {
   phone?: string | null;
 }
 
+// Response of POST /api/job/{jobId}/start-survey.
+interface StartSurveyDto {
+  jobId: number;
+  status: number;
+  statusName: string;
+  sessionId: string;
+  startedAt: string;
+}
+
 const PARKING_OPTIONS = ['Yes', 'No'];
+
+const CONFIRMED_KEY = 'surveyor.locationConfirmed.';
+function confirmedLocally(jobRef: string): boolean {
+  try {
+    return localStorage.getItem(`${CONFIRMED_KEY}${jobRef}`) !== null;
+  } catch {
+    return false;
+  }
+}
 
 // Surveyor screens address jobs by jobRef; the backend wants the numeric job id (Job.id in the local store).
 async function resolveJobId(jobRef: string): Promise<string> {
@@ -138,17 +156,51 @@ export const surveyorApi = createApi({
     }),
 
     getSurveyorJob: builder.query<SurveyorJobDetail, string>({
-      queryFn: (jobRef) => surveyorRequest<SurveyorJobDetail>({ method: 'GET', path: jobPath(jobRef) }),
+      // Reuses baseApi's getJob (GET /api/job/{id}) and maps the Job to the Surveyor detail shape.
+      async queryFn(jobRef, { dispatch }) {
+        const local = (await jobsRepo.getAll()).find((entry) => entry.jobRef === jobRef);
+        const res = await dispatch(baseApi.endpoints.getJob.initiate(local?.id ?? jobRef, { forceRefetch: true }));
+        if (res.error || !res.data) {
+          return { error: (res.error as ApiErrorShape) ?? { status: 404, message: 'Job not found.' } };
+        }
+        const job = res.data;
+        const summary = toSurveyorJobSummary(job);
+        const session = await authRepo.get();
+        return {
+          data: {
+            jobRef: summary.jobRef,
+            siteName: summary.siteName,
+            address: summary.address,
+            status: summary.status,
+            scheduledDate: summary.scheduledDate,
+            assignedTo: session?.name ?? '',
+            location: {
+              latitude: job.latitude ?? 0,
+              longitude: job.longitude ?? 0,
+              confirmed: confirmedLocally(summary.jobRef), // the backend has no "confirmed" flag yet
+              accuracyM: 0,
+            },
+            sync: summary.sync,
+            returned: summary.returned,
+            surveyStarted: summary.status !== 'not_started',
+          },
+        };
+      },
       providesTags: (_r, _e, jobRef) => [{ type: 'SurveyorJob', id: jobRef }],
     }),
 
     confirmSiteLocation: builder.mutation<ConfirmSiteLocationResponse, ConfirmSiteLocationRequest>({
-      queryFn: ({ jobRef, ...body }) =>
-        surveyorRequest<ConfirmSiteLocationResponse>({
-          method: 'POST',
-          path: `${jobPath(jobRef)}/site-location/confirm`,
-          body,
-        }),
+      // Frontend-only for now: the backend has no surveyor-allowed confirm endpoint, so the confirmation is
+      // remembered on this device (see confirmedLocally) and nothing is sent to the server.
+      queryFn: ({ jobRef }) => {
+        const confirmedAt = new Date().toISOString();
+        try {
+          localStorage.setItem(`${CONFIRMED_KEY}${jobRef}`, confirmedAt);
+        } catch {
+          /* storage unavailable: confirmation lasts for this session only */
+        }
+        return { data: { confirmed: true as const, confirmedAt } };
+      },
       invalidatesTags: (_r, _e, { jobRef }) => [{ type: 'SurveyorJob', id: jobRef }],
     }),
 
@@ -159,8 +211,10 @@ export const surveyorApi = createApi({
           `/api/jobs/${await resolveJobId(jobRef)}/site-information`,
           dispatch,
         );
-        if ('error' in res) return res;
-        return { data: { siteInfo: fromSiteInformationDto(res.data), options: { parking: PARKING_OPTIONS } } };
+        // 404 = nothing saved yet for this job: show an empty form for the surveyor to fill in.
+        if ('error' in res && res.error.status !== 404) return res;
+        const dto = 'error' in res ? {} : res.data;
+        return { data: { siteInfo: fromSiteInformationDto(dto), options: { parking: PARKING_OPTIONS } } };
       },
       providesTags: (_r, _e, jobRef) => [{ type: 'SiteInfo', id: jobRef }],
     }),
@@ -215,13 +269,13 @@ export const surveyorApi = createApi({
       queryFn: () => surveyorRequest<RunbookConfig>({ method: 'GET', path: '/config/runbook' }),
     }),
 
-    startSurvey: builder.mutation<Runbook, { jobRef: string }>({
-      queryFn: ({ jobRef }) =>
-        surveyorRequest<Runbook>({
+    // Real backend: POST /api/job/{jobId}/start-survey (callers only await success; the runbook is loaded separately).
+    startSurvey: builder.mutation<StartSurveyDto, { jobRef: string }>({
+      async queryFn({ jobRef }, { dispatch }) {
+        return apiRequest<StartSurveyDto>(`/api/jobs/${await resolveJobId(jobRef)}/survey-start`, dispatch, {
           method: 'POST',
-          path: `${jobPath(jobRef)}/survey/start`,
-          body: { clientRequestId: crypto.randomUUID() },
-        }),
+        });
+      },
       invalidatesTags: (_r, _e, { jobRef }) => ['SurveyorJobs', { type: 'SurveyorJob', id: jobRef }],
     }),
 

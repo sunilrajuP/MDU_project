@@ -42,7 +42,13 @@ export function MapPage() {
 
   return (
     <div className={styles.page}>
-      <SiteMap jobRef={job.jobRef} variant="full" basemap={basemap} onBasemapChange={setBasemap} />
+      <SiteMap
+        jobRef={job.jobRef}
+        variant="full"
+        basemap={basemap}
+        onBasemapChange={setBasemap}
+        location={job.location.latitude || job.location.longitude ? job.location : undefined}
+      />
       {confirmFailed && <Callout tone="danger">The site location could not be confirmed. Please try again.</Callout>}
       <div className={styles.actionBar}>
         <Button type="button" className={styles.wide} onClick={() => void handleConfirm()} disabled={confirming}>

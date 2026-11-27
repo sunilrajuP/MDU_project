@@ -10,6 +10,8 @@ interface SiteMapProps {
   onBasemapChange: (basemap: Basemap) => void;
   /** Preview only: re-centre on the device GPS. */
   onLocate?: () => void;
+  /** Job coordinates from the backend; when given, a live map centred on them replaces the illustration. */
+  location?: { latitude: number; longitude: number };
 }
 
 // Illustration coordinates (the Figma map frame, 716 wide). The pin sits on Bourke Street.
@@ -35,12 +37,21 @@ const STREET_LABELS: { text: string; x: number; y: number; strong?: boolean }[] 
  * Stylised site map (matches the Figma illustration). It is a static drawing, not a live map:
  * a real tile map is tracked in docs/surveyor-backlog.md.
  */
-export function SiteMap({ jobRef, variant, basemap, onBasemapChange, onLocate }: Readonly<SiteMapProps>) {
+export function SiteMap({ jobRef, variant, basemap, onBasemapChange, onLocate, location }: Readonly<SiteMapProps>) {
   const isPreview = variant === 'preview';
   const pinWidth = 40 + jobRef.length * 7.6;
 
   return (
     <div className={[styles.map, styles[basemap], isPreview ? styles.preview : styles.full].join(' ')}>
+      {location ? (
+        <iframe
+          className={styles.svg}
+          title={`Map of the site for ${jobRef}`}
+          src={`https://maps.google.com/maps?q=${location.latitude},${location.longitude}&z=17&t=${basemap === 'satellite' ? 'k' : 'm'}&output=embed`}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        />
+      ) : (
       <svg
         className={styles.svg}
         viewBox={isPreview ? VIEW_PREVIEW : VIEW_FULL}
@@ -107,6 +118,7 @@ export function SiteMap({ jobRef, variant, basemap, onBasemapChange, onLocate }:
           </g>
         )}
       </svg>
+      )}
 
       <div className={styles.basemap} role="group" aria-label="Map type">
         {(['terrain', 'satellite'] as const).map((type) => (
