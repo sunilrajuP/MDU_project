@@ -45,6 +45,15 @@ export interface BackendSurvey {
   sections: SurveySection[];
 }
 
+/** The backend stores Yes/No answers as e.g. "YES"; the UI uses 'true' | 'false' | 'N/A'. Maps either form to the UI one. */
+export function normalizeChoice(value: string): string {
+  const v = value.trim().toLowerCase();
+  if (v === 'yes' || v === 'true') return 'true';
+  if (v === 'no' || v === 'false') return 'false';
+  if (v === 'n/a' || v === 'na') return 'N/A';
+  return value;
+}
+
 export function parseBackendSurvey(value: unknown): BackendSurvey | undefined {
   let normalized = value;
   if (value !== null && typeof value === 'object' && 'sessionId' in value &&

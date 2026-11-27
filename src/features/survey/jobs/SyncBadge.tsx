@@ -32,9 +32,9 @@ export function SyncBadge({ state, lastSyncedAt, dataRetained }: Readonly<SyncBa
       </span>
     );
   }
-  return (
-    <span className={[styles.badge, styles.ok].join(' ')}>
-      <Check size={11} aria-hidden="true" /> Synced {formatClock(lastSyncedAt)}
-    </span>
-  );
+  // return (
+  //   <span className={[styles.badge, styles.ok].join(' ')}>
+  //     <Check size={11} aria-hidden="true" /> Synced {formatClock(lastSyncedAt)}
+  //   </span>
+  // );
 }
