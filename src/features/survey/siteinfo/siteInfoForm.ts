@@ -10,6 +10,9 @@ export interface SiteInfoValues {
   accessWindow: string;
   entryInstructions: string;
   accessRequirements: string;
+  buildingName: string;
+  buildingType: string;
+  ground: string;
 }
 
 export type SiteInfoErrors = Partial<Record<keyof SiteInfoValues, string>>;
@@ -24,6 +27,9 @@ export function toValues(info: SiteInfo): SiteInfoValues {
     accessWindow: info.access.accessWindow,
     entryInstructions: info.access.entryInstructions.value,
     accessRequirements: info.access.accessRequirements,
+    buildingName: info.building.name,
+    buildingType: info.building.type,
+    ground: info.building.ground,
   };
 }
 
@@ -43,6 +49,11 @@ export function toSiteInfo(values: SiteInfoValues, original: SiteInfo): Omit<Sit
       accessWindow: values.accessWindow,
       entryInstructions: field(values.entryInstructions, original.access.entryInstructions),
       accessRequirements: values.accessRequirements,
+    },
+    building: {
+      name: values.buildingName,
+      type: values.buildingType,
+      ground: values.ground,
     },
   };
 }

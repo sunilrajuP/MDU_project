@@ -9,7 +9,6 @@ import {
   useGetSiteInfoQuery,
   useGetSurveyorJobQuery,
   useSaveSiteInfoMutation,
-  useStartSurveyMutation,
 } from '@/api/surveyorApi';
 import { PATHS } from '@/app/paths';
 import type { GetSiteInfoResponse, SurveyorJobDetail } from '@/types/surveyor';
@@ -26,11 +25,10 @@ interface SiteInfoFormProps {
 function SiteInfoForm({ jobRef, job, data }: Readonly<SiteInfoFormProps>) {
   const navigate = useNavigate();
   const [saveSiteInfo, { isLoading: saving }] = useSaveSiteInfoMutation();
-  const [startSurvey, { isLoading: starting }] = useStartSurveyMutation();
   const [values, setValues] = useState<SiteInfoValues>(() => toValues(data.siteInfo));
   const [errors, setErrors] = useState<SiteInfoErrors>({});
   const [failed, setFailed] = useState(false);
-  const busy = saving || starting;
+  const busy = saving;
 
   const original = data.siteInfo;
   const tagFor = (flag?: boolean) => (flag ? 'from manager' : undefined);
@@ -53,12 +51,11 @@ function SiteInfoForm({ jobRef, job, data }: Readonly<SiteInfoFormProps>) {
         baseRev: original.rev,
         siteInfo: toSiteInfo(values, original),
       }).unwrap();
-      if (!job.surveyStarted) await startSurvey({ jobRef }).unwrap();
     } catch {
       setFailed(true);
       return;
     }
-    navigate(PATHS.SURVEYOR_JOB_RUNBOOK(jobRef));
+    navigate(PATHS.SURVEYOR_JOB_OVERVIEW(jobRef));
   }
 
   return (
@@ -142,11 +139,34 @@ function SiteInfoForm({ jobRef, job, data }: Readonly<SiteInfoFormProps>) {
         </div>
       </Card>
 
-      {failed && <Callout tone="danger">Your changes could not be saved. Please try again.</Callout>}
+      <Card className={styles.card}>
+        <h2 className={styles.heading}>Building information</h2>
+        <div className={styles.grid}>
+          <Input
+            label="Building / Complex"
+            value={values.buildingName}
+            onChange={(event) => set('buildingName')(event.target.value)}
+          />
+          <Select
+            label="Building type"
+            value={values.buildingType}
+            onChange={(event) => set('buildingType')(event.target.value)}
+            options={data.options.buildingType.map((option) => ({ value: option, label: option }))}
+          />
+          <Select
+            label="Ground"
+            value={values.ground}
+            onChange={(event) => set('ground')(event.target.value)}
+            options={data.options.ground.map((option) => ({ value: option, label: option }))}
+          />
+        </div>
+      </Card>
+
+      {failed &&<Callout tone="danger">Your changes could not be saved. Please try again.</Callout>}
 
       <div className={styles.actionBar}>
         <Button type="submit" className={styles.wide} disabled={busy}>
-          {busy ? 'Saving…' : 'Save & Continue survey'}
+          {busy ? 'Saving…' : 'Save'}
         </Button>
       </div>
     </form>

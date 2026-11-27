@@ -101,6 +101,8 @@ export function mockJobDetail(jobRef: string): SurveyorJobDetail | undefined {
 
 export const MOCK_SITE_INFO_OPTIONS = {
   parking: ['Yes · B1 visitor', 'Yes · Street only', 'No parking', 'Unknown'],
+  buildingType: ['Vertical', 'Horizontal'],
+  ground: ['Greenfield', 'Brownfield'],
 };
 
 export function mockSiteInfo(): SiteInfo {
@@ -117,6 +119,7 @@ export function mockSiteInfo(): SiteInfo {
       entryInstructions: { value: 'Bourke Street lobby; sign in with concierge.', fromManager: true },
       accessRequirements: 'Collect riser key from Ella. Escort to plant room.',
     },
+    building: { name: 'Harbour Mews', type: 'Vertical', ground: 'Brownfield' },
     rev: 1,
   };
 }

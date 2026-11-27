@@ -72,12 +72,17 @@ export interface SiteInfo {
     entryInstructions: SiteInfoField;
     accessRequirements: string;
   };
+  building: {
+    name: string;
+    type: string;
+    ground: string;
+  };
   rev: number;
 }
 
 export interface GetSiteInfoResponse {
   siteInfo: SiteInfo;
-  options: { parking: string[] };
+  options: { parking: string[]; buildingType: string[]; ground: string[] };
 }
 
 export interface SaveSiteInfoRequest {

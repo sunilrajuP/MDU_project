@@ -44,16 +44,24 @@ interface SiteInformationDto {
   accessRequirements?: string | null;
   contactName?: string | null;
   contactEmail?: string | null;
-  phone?: string | null;
+  contactPhone?: string | null;
+  contactRole?: string | null;
+  buildingName?: string | null;
+  buildingType?: string | null;
+  ground?: string | null;
 }
 
-// Response of POST /api/job/{jobId}/start-survey.
+const BUILDING_TYPE_OPTIONS = ['Vertical', 'Horizontal'];
+const GROUND_OPTIONS = ['Green field', 'Brown field'];
+
+// Response of GET /api/jobs/{jobId}/survey (only the header fields are typed; sections/floors are loaded separately).
 interface StartSurveyDto {
   jobId: number;
-  status: number;
+  jobRef: string;
+  status: string;
   statusName: string;
   sessionId: string;
-  startedAt: string;
+  sessionStartedAt: string;
 }
 
 const PARKING_OPTIONS = ['Yes', 'No'];
@@ -76,9 +84,9 @@ async function resolveJobId(jobRef: string): Promise<string> {
 function fromSiteInformationDto(dto: SiteInformationDto): SiteInfo {
   return {
     stakeholder: {
-      role: { value: '' }, // not provided by the backend
+      role: { value: dto.contactRole ?? '' },
       name: { value: dto.contactName ?? '' },
-      phone: { value: dto.phone ?? '' },
+      phone: { value: dto.contactPhone ?? '' },
       email: { value: dto.contactEmail ?? '' },
     },
     access: {
@@ -86,6 +94,11 @@ function fromSiteInformationDto(dto: SiteInformationDto): SiteInfo {
       accessWindow: dto.accessWindow ?? '',
       entryInstructions: { value: dto.entryAccessInstructions ?? '' },
       accessRequirements: dto.accessRequirements ?? '',
+    },
+    building: {
+      name: dto.buildingName ?? '',
+      type: dto.buildingType ?? '',
+      ground: dto.ground ?? '',
     },
     rev: 0, // backend has no revision
   };
@@ -99,7 +112,11 @@ function toSiteInformationDto(info: Omit<SiteInfo, 'rev'>): SiteInformationDto {
     accessRequirements: info.access.accessRequirements,
     contactName: info.stakeholder.name.value,
     contactEmail: info.stakeholder.email.value,
-    phone: info.stakeholder.phone.value,
+    contactPhone: info.stakeholder.phone.value,
+    contactRole: info.stakeholder.role.value,
+    buildingName: info.building.name,
+    buildingType: info.building.type,
+    ground: info.building.ground,
   };
 }
 
@@ -214,7 +231,7 @@ export const surveyorApi = createApi({
         // 404 = nothing saved yet for this job: show an empty form for the surveyor to fill in.
         if ('error' in res && res.error.status !== 404) return res;
         const dto = 'error' in res ? {} : res.data;
-        return { data: { siteInfo: fromSiteInformationDto(dto), options: { parking: PARKING_OPTIONS } } };
+        return { data: { siteInfo: fromSiteInformationDto(dto), options: { parking: PARKING_OPTIONS, buildingType: BUILDING_TYPE_OPTIONS, ground: GROUND_OPTIONS } } };
       },
       providesTags: (_r, _e, jobRef) => [{ type: 'SiteInfo', id: jobRef }],
     }),
@@ -269,11 +286,11 @@ export const surveyorApi = createApi({
       queryFn: () => surveyorRequest<RunbookConfig>({ method: 'GET', path: '/config/runbook' }),
     }),
 
-    // Real backend: POST /api/job/{jobId}/start-survey (callers only await success; the runbook is loaded separately).
+    // Real backend: GET /api/jobs/{jobId}/survey (callers only await success; the runbook is loaded separately).
     startSurvey: builder.mutation<StartSurveyDto, { jobRef: string }>({
       async queryFn({ jobRef }, { dispatch }) {
-        return apiRequest<StartSurveyDto>(`/api/jobs/${await resolveJobId(jobRef)}/survey-start`, dispatch, {
-          method: 'POST',
+        return apiRequest<StartSurveyDto>(`/api/jobs/${await resolveJobId(jobRef)}/survey`, dispatch, {
+          method: 'GET',
         });
       },
       invalidatesTags: (_r, _e, { jobRef }) => ['SurveyorJobs', { type: 'SurveyorJob', id: jobRef }],
