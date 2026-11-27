@@ -4,6 +4,7 @@ import Dexie, { type EntityTable } from 'dexie';
 import type { Job, Team, User } from '@/types/domain';
 import type { JobSyncEntry } from '@/types/jobSync';
 import type { MarkupData, MediaContext, MediaKind, SectionKey } from '@/types/surveyor';
+import type { BackendSurvey, SurveyAnswer } from '@/types/backendSurvey';
 
 export interface AuthSessionRecord {
   id: 'current';
@@ -63,7 +64,14 @@ export interface RunbookDraftRecord {
   updatedAt: string;
 }
 
+export interface BackendSurveyRecord {
+  id: string;
+  survey: BackendSurvey;
+  pending: Record<string, SurveyAnswer>;
+}
+
 export class MduDatabase extends Dexie {
+  backendSurveys!: EntityTable<BackendSurveyRecord, 'id'>;
   runbookDrafts!: EntityTable<RunbookDraftRecord, 'id'>;
   media!: EntityTable<MediaRecord, 'id'>;
   jobs!: EntityTable<Job, 'id'>;
@@ -124,6 +132,10 @@ export class MduDatabase extends Dexie {
     // Version 4 — Surveyor runbook drafts (offline-first section data). Additive.
     this.version(4).stores({
       runbookDrafts: 'id, jobRef',
+    });
+
+    this.version(5).stores({
+      backendSurveys: 'id',
     });
   }
 }

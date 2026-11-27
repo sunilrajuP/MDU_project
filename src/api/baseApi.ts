@@ -352,9 +352,13 @@ export async function apiRequest<T>(
   path: string,
   dispatch: Dispatch,
   init: RequestOptions = { method: "GET" },
+  expectedUserId?: string,
 ): Promise<ApiResult<T>> {
   let session = await authRepo.get();
   if (!session) return sessionEnded();
+  if (expectedUserId && session.userId !== expectedUserId) {
+    return { error: { status: 401, message: "The signed-in user changed. Please reopen the survey." } };
+  }
   let refreshed = false;
   const expiry = tokenExpiry(session.accessToken, session.expiry);
   if (expiry !== undefined && expiry <= Date.now()) {

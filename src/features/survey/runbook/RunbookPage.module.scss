@@ -49,3 +49,19 @@
   flex-direction: column;
   gap: $space-2;
 }
+
+.question {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.questions {
+  display: flex;
+  flex-direction: column;
+  gap: $space-4;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
