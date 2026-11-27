@@ -6,6 +6,11 @@ export interface SurveyAnswer {
   floorId?: string;
 }
 
+export interface SurveyCardAnswers {
+  sectionId: number;
+  answers: SurveyAnswer[];
+}
+
 export interface SurveyItem {
   id: number;
   sectionId: number;
@@ -38,6 +43,15 @@ export interface BackendSurvey {
   sessionId: string;
   status: string;
   sections: SurveySection[];
+}
+
+export function parseBackendSurvey(value: unknown): BackendSurvey | undefined {
+  let normalized = value;
+  if (value !== null && typeof value === 'object' && 'sessionId' in value &&
+      typeof value.sessionId === 'number' && Number.isSafeInteger(value.sessionId) && value.sessionId >= 0) {
+    normalized = { ...value, sessionId: String(value.sessionId) };
+  }
+  return isBackendSurvey(normalized) ? normalized : undefined;
 }
 
 export function isBackendSurvey(value: unknown): value is BackendSurvey {

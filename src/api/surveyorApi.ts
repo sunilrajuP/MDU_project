@@ -35,7 +35,7 @@ import { apiRequest, baseApi } from './baseApi';
 import { authRepo } from '@/data/repos/authRepo';
 import { jobsRepo } from '@/data/repos/jobsRepo';
 import type { Job } from '@/types/domain';
-import { isBackendSurvey, type BackendSurvey, type SurveyAnswer } from '@/types/backendSurvey';
+import { parseBackendSurvey, type BackendSurvey, type SurveyCardAnswers } from '@/types/backendSurvey';
 
 // Backend site-information DTO (GET/PUT /api/jobs/{jobId}/site-information).
 interface SiteInformationDto {
@@ -55,14 +55,13 @@ interface SiteInformationDto {
 const BUILDING_TYPE_OPTIONS = ['Vertical', 'Horizontal'];
 const GROUND_OPTIONS = ['Green field', 'Brown field'];
 
-// Response of GET /api/jobs/{jobId}/survey (only the header fields are typed; sections/floors are loaded separately).
+// Response of POST /api/jobs/{jobId}/survey-start.
 interface StartSurveyDto {
   jobId: number;
-  jobRef: string;
   status: string;
-  statusName: string;
-  sessionId: string;
-  sessionStartedAt: string;
+  sessionId: string | number;
+  startedAt: string;
+  resumed: boolean;
 }
 
 const PARKING_OPTIONS = ['Yes', 'No'];
@@ -158,10 +157,11 @@ export const surveyorApi = createApi({
       async queryFn({ jobRef, userId }, { dispatch }) {
         const result = await apiRequest<unknown>(`/api/jobs/${await resolveJobId(jobRef)}/survey`, dispatch, undefined, userId);
         if ('error' in result) return result;
-        if (!isBackendSurvey(result.data) || result.data.jobRef !== jobRef) {
+        const survey = parseBackendSurvey(result.data);
+        if (!survey || survey.jobRef !== jobRef) {
           return { error: { status: 422, message: 'The server returned an invalid survey or a different job.' } };
         }
-        return { data: result.data };
+        return { data: survey };
       },
     }),
 
@@ -170,27 +170,30 @@ export const surveyorApi = createApi({
       userId: string;
       sessionId: string;
       sectionId: number;
-      answers: SurveyAnswer[];
+      cards: SurveyCardAnswers[];
     }>({
-      async queryFn({ jobId, userId, sessionId, sectionId, answers }, { dispatch }) {
+      async queryFn({ jobId, userId, sessionId, sectionId, cards }, { dispatch }) {
         const result = await apiRequest<unknown>(
           `/api/jobs/${encodeURIComponent(String(jobId))}/survey-sessions/${encodeURIComponent(sessionId)}/sections/${encodeURIComponent(String(sectionId))}/answers`,
           dispatch,
-          { method: 'PUT', body: { answers } }, userId,
+          { method: 'PUT', body: cards }, userId,
         );
         if ('error' in result) return result;
-        if (!isBackendSurvey(result.data) || result.data.jobId !== jobId || result.data.sessionId !== sessionId) {
+        const survey = parseBackendSurvey(result.data);
+        if (!survey || survey.jobId !== jobId || survey.sessionId !== sessionId) {
           return { error: { status: 422, message: 'The server returned an invalid or different survey after saving.' } };
         }
-        const section = result.data.sections.find((entry) => entry.id === sectionId);
-        if (!section || answers.some((answer) => {
-          const item = section.items.find((entry) => entry.id === answer.itemId);
-          return !item || item.responseValue !== answer.value || item.isFlagged !== answer.isFlagged ||
-            (item.note ?? '') !== answer.note;
+        if (cards.some((card) => {
+          const section = survey.sections.find((entry) => entry.id === card.sectionId);
+          return !section || card.answers.some((answer) => {
+            const item = section.items.find((entry) => entry.id === answer.itemId);
+            return !item || item.responseValue !== answer.value || item.isFlagged !== answer.isFlagged ||
+              (item.note ?? '') !== answer.note;
+          });
         })) {
           return { error: { status: 422, message: 'The server did not confirm the saved answers.' } };
         }
-        return { data: result.data };
+        return { data: survey };
       },
     }),
 
@@ -327,12 +330,17 @@ export const surveyorApi = createApi({
       queryFn: () => surveyorRequest<RunbookConfig>({ method: 'GET', path: '/config/runbook' }),
     }),
 
-    // Real backend: GET /api/jobs/{jobId}/survey (callers only await success; the runbook is loaded separately).
-    startSurvey: builder.mutation<StartSurveyDto, { jobRef: string }>({
-      async queryFn({ jobRef }, { dispatch }) {
-        return apiRequest<StartSurveyDto>(`/api/jobs/${await resolveJobId(jobRef)}/survey`, dispatch, {
-          method: 'GET',
-        });
+    startSurvey: builder.mutation<StartSurveyDto, { jobRef: string; userId?: string }>({
+      async queryFn({ jobRef, userId }, { dispatch }) {
+        const jobId = await resolveJobId(jobRef);
+        const numericId = Number(jobId);
+        if (!/^\d+$/.test(jobId) || !Number.isSafeInteger(numericId) || numericId <= 0) {
+          return { error: { status: 422, message: 'A valid numeric job ID is required to start the survey.' } };
+        }
+        return apiRequest<StartSurveyDto>(`/api/jobs/${jobId}/survey-start`, dispatch, {
+          method: 'POST',
+          body: numericId,
+        }, userId);
       },
       invalidatesTags: (_r, _e, { jobRef }) => ['SurveyorJobs', { type: 'SurveyorJob', id: jobRef }],
     }),

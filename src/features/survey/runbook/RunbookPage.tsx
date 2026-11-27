@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Callout } from '@/components/ui/Callout';
+import { Button } from '@/components/ui/Button';
 import {
   useGetBomQuery,
   useGetRunbookConfigQuery,
@@ -71,8 +72,9 @@ function RunbookFrame({ siteName, config, expanded, onToggle, onOpen }: Readonly
       </div>
 
       <div className={styles.list}>
-        {config.sections.map((section) => {
+        {config.sections.map((section, index) => {
           const Body = SECTION_COMPONENTS[section.key];
+          const following = config.sections[index + 1];
           return (
             <SectionAccordion
               key={section.key}
@@ -85,6 +87,7 @@ function RunbookFrame({ siteName, config, expanded, onToggle, onOpen }: Readonly
               expanded={expanded === section.key}
               readOnly={readOnly}
               onToggle={() => onToggle(section.key)}
+              footer={following && <Button type="button" onClick={() => onOpen(following.key)}>Next</Button>}
             >
               <Body />
             </SectionAccordion>
