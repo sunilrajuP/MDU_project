@@ -126,3 +126,109 @@ $action-height: 76px;
   color: $color-text-primary;
   font-weight: 650;
 }
+
+.sidebar {
+  display: none;
+}
+
+@include desktop-up {
+  .page {
+    padding-left: $sidebar-width;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: $sidebar-width;
+    box-sizing: border-box;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background: $color-surface;
+    border-right: $border-width-default solid $color-border;
+    padding: $space-8 $space-4 $space-6;
+    gap: $space-8;
+    z-index: $z-index-nav;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+  }
+
+  .brandMark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: $brand-mark-size;
+    height: $brand-mark-size;
+    border-radius: $radius-sm;
+    background: $color-purple-700;
+    color: $color-text-inverse;
+    flex-shrink: 0;
+  }
+
+  .brandText {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brandName {
+    font-weight: 600;
+    font-size: $font-size-md;
+    color: $color-text-primary;
+  }
+
+  .brandSubtitle {
+    font-size: $font-size-2xs;
+    color: $color-text-secondary;
+    letter-spacing: $brand-subtitle-letter-spacing;
+  }
+
+  .sideNav {
+    display: flex;
+    flex-direction: column;
+    gap: $space-2;
+    flex: 1;
+  }
+
+  .sideItem {
+    @include touch-target;
+    @include focus-visible-ring;
+    display: flex;
+    align-items: center;
+    gap: $space-3;
+    padding: 0 $space-4;
+    border: none;
+    border-radius: $radius-nav;
+    background: transparent;
+    color: $color-sidebar-text;
+    font-size: $font-size-md;
+    font-weight: 500;
+    text-decoration: none;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .sideItemActive {
+    background: rgba($color-nav-active, 0.1);
+    color: $color-nav-active;
+    font-weight: 700;
+  }
+
+  .nav {
+    display: none;
+  }
+
+  .content {
+    padding-bottom: calc(#{$action-height} + #{$space-6});
+  }
+
+  .action {
+    left: $sidebar-width;
+    bottom: 0;
+  }
+}

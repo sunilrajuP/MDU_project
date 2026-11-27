@@ -27,6 +27,8 @@ interface AppShellProps {
   bottomNavItems: NavItem[];
   onSignOut: () => void;
   signingOut?: boolean;
+  /** Show the sidebar on desktop only; tablet and mobile use the bottom navigation. */
+  sidebarDesktopOnly?: boolean;
 }
 
 export function AppShell({
@@ -38,6 +40,7 @@ export function AppShell({
   bottomNavItems,
   onSignOut,
   signingOut = false,
+  sidebarDesktopOnly = false,
   children,
 }: PropsWithChildren<AppShellProps>) {
   const [accountOpen, setAccountOpen] = useState(false);
@@ -53,7 +56,7 @@ export function AppShell({
   }
 
   return (
-    <div className={styles.shell}>
+    <div className={[styles.shell, sidebarDesktopOnly ? styles.sidebarDesktopOnly : ''].join(' ')}>
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
           <span className={styles.brandMark}>

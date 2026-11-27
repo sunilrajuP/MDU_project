@@ -355,6 +355,30 @@
   }
 }
 
+// Opt-in (Surveyor): between tablet and desktop, hide the sidebar and keep the bottom navigation.
+@media (min-width: $breakpoint-tablet) and (max-width: #{$breakpoint-desktop - 1px}) {
+  .sidebarDesktopOnly {
+    flex-direction: column;
+
+    .sidebar {
+      display: none;
+    }
+
+    .main {
+      margin-left: 0;
+      width: 100%;
+    }
+
+    .content {
+      padding-bottom: calc(#{$bottom-nav-height} + #{$space-6});
+    }
+
+    .bottomNav {
+      display: flex;
+    }
+  }
+}
+
 @include desktop-up {
   .content {
     max-width: $content-max-width-desktop;

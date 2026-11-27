@@ -20,7 +20,7 @@ const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ?
 
 export function MyJobsPage() {
   const [filter, setFilter] = useState<FilterKey>('all');
-  const { data, isLoading, isError, refetch } = useGetSurveyorJobsQuery();
+  const { data, isLoading, isError, refetch } = useGetSurveyorJobsQuery(undefined, { refetchOnMountOrArgChange: true });
 
   const surveyorName = data?.assignedTo.name ?? '';
   const jobs = (data?.jobs ?? []).filter((job) => filter === 'all' || job.status === filter);

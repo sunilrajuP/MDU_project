@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
-import { useGetBackendSurveyQuery, useSaveBackendSurveyAnswersMutation, useStartSurveyMutation } from '@/api/surveyorApi';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useGetBackendSurveyQuery, useSaveBackendSurveyAnswersMutation, useSubmitBackendSurveyMutation } from '@/api/surveyorApi';
 import { PATHS } from '@/app/paths';
 import { Button } from '@/components/ui/Button';
 import { Callout } from '@/components/ui/Callout';
@@ -11,7 +11,7 @@ import { runbookRepo } from '@/data/repos/runbookRepo';
 import type { BackendSurveyRecord } from '@/data/db/schema';
 import { selectAuth } from '@/features/auth/authSlice';
 import { useAppSelector } from '@/store/hooks';
-import type { SurveyAnswer, SurveyCardAnswers, SurveyItem, SurveySection } from '@/types/backendSurvey';
+import { normalizeChoice, type SurveyAnswer, type SurveyCardAnswers, type SurveyItem, type SurveySection } from '@/types/backendSurvey';
 import type { SectionKey } from '@/types/surveyor';
 import { useOnlineStatus } from '../useOnlineStatus';
 import { RunbookShell } from './shell/RunbookShell';
@@ -31,7 +31,10 @@ const SECTION_KEYS: Record<string, SectionKey> = {
   SIGN_OFF: 'signoff',
 };
 
-const answerKey = (sectionId: number, itemId: number) => `${sectionId}:${itemId}`;
+// Only these sections collect a per-question note.
+const NOTE_SECTIONS = new Set<SectionKey>(['whs', 'external', 'internal']);
+
+const answerKey =(sectionId: number, itemId: number) => `${sectionId}:${itemId}`;
 const isReadOnly = (status: string) => ['submitted', 'approved'].includes(status.toLowerCase());
 const message = (error: unknown) =>
   error instanceof Error ? error.message
@@ -58,8 +61,8 @@ function cardsForSection(record: BackendSurveyRecord, sectionId: number): Survey
 }
 
 function Question({
-  item, answer, onChange,
-}: Readonly<{ item: SurveyItem; answer: SurveyAnswer; onChange: (answer: SurveyAnswer) => void }>) {
+  item, answer, showNote, onChange,
+}: Readonly<{ item: SurveyItem; answer: SurveyAnswer; showNote: boolean; onChange: (answer: SurveyAnswer) => void }>) {
   if (item.answerType === 'PHOTO') {
     return <Callout tone="warning">{item.prompt}: photo upload is not available yet.</Callout>;
   }
@@ -86,21 +89,23 @@ function Question({
               { value: 'false', label: 'No' },
               { value: 'N/A', label: 'N/A' },
             ]}
-            value={answer.value || null}
+            value={normalizeChoice(answer.value) || null}
             onChange={(value) => onChange({ ...answer, value })}
           />
         </>
       )}
-      <Input
-        id={`survey-note-${item.sectionId}-${item.id}`}
-        label={`Note: ${item.prompt}`}
-        value={answer.note}
-        onChange={(event) => onChange({ ...answer, note: event.target.value })}
-      />
-      <label>
+      {showNote && (
+        <Input
+          id={`survey-note-${item.sectionId}-${item.id}`}
+          label={`Note: ${item.prompt}`}
+          value={answer.note}
+          onChange={(event) => onChange({ ...answer, note: event.target.value })}
+        />
+      )}
+      {/* <label>
         <input type="checkbox" checked={answer.isFlagged} onChange={(event) => onChange({ ...answer, isFlagged: event.target.checked })} />
         {' '}Flag this answer
-      </label>
+      </label> */}
       {item.minPhotos > 0 && <Callout tone="warning">This item also requires photos. Photo upload is not available yet.</Callout>}
     </div>
   );
@@ -109,18 +114,18 @@ function Question({
 export function BackendRunbookPage() {
   const { jobRef = '' } = useParams();
   const { userId } = useAppSelector(selectAuth);
-  const { state } = useLocation();
-  const startRequested = state !== null && typeof state === 'object' && 'startSurvey' in state && state.startSurvey === true;
   if (!userId || !jobRef) return <RunbookShell jobRef={jobRef}><p role="status">Loading survey…</p></RunbookShell>;
-  return <BackendRunbook key={JSON.stringify([userId, jobRef])} userId={userId} jobRef={jobRef} startRequested={startRequested} />;
+  return <BackendRunbook key={JSON.stringify([userId, jobRef])} userId={userId} jobRef={jobRef} />;
 }
 
-function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: string; jobRef: string; startRequested: boolean }>) {
+function BackendRunbook({ userId, jobRef }: Readonly<{ userId: string; jobRef: string }>) {
   const online = useOnlineStatus();
-  const [startState, setStartState] = useState<'pending' | 'ready' | 'failed'>(startRequested ? 'pending' : 'ready');
-  const [startSurvey] = useStartSurveyMutation();
-  const query = useGetBackendSurveyQuery({ jobRef, userId }, { skip: startState !== 'ready', refetchOnMountOrArgChange: true });
+  // Loading the survey also calls survey-start, so the session is resumed or opened as part of the query.
+  const query = useGetBackendSurveyQuery({ jobRef, userId }, { refetchOnMountOrArgChange: true });
   const [saveAnswers] = useSaveBackendSurveyAnswersMutation();
+  const [submitSurvey, { isLoading: submitting }] = useSubmitBackendSurveyMutation();
+  const navigate = useNavigate();
+  const [submitError, setSubmitError] = useState('');
   const [record, setRecord] = useState<BackendSurveyRecord>();
   const [error, setError] = useState('');
   const [syncError, setSyncError] = useState('');
@@ -135,28 +140,6 @@ function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: s
   const writeCount = useRef(0);
   const saving = useRef(false);
   const active = useRef(true);
-  const startRequest = useRef<Promise<unknown> | null>(null);
-
-  useEffect(() => {
-    if (!startRequested) return;
-    let mounted = true;
-    const request = startRequest.current ?? (navigator.onLine
-      ? startSurvey({ jobRef, userId }).unwrap()
-      : Promise.resolve());
-    startRequest.current = request;
-    void request.then(() => {
-      if (mounted) setStartState('ready');
-    }, (reason: unknown) => {
-      if (!mounted) return;
-      if (typeof reason === 'object' && reason !== null && 'status' in reason && reason.status === 0) {
-        setStartState('ready');
-      } else {
-        setError(message(reason));
-        setStartState('failed');
-      }
-    });
-    return () => { mounted = false; };
-  }, [jobRef, userId, startRequested, startSurvey]);
 
   const setCurrent = useCallback((next: BackendSurveyRecord) => {
     recordRef.current = next;
@@ -272,6 +255,31 @@ function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: s
     }
   }, [jobRef, saveAnswers, setCurrent, storageError, userId]);
 
+  // Submit is allowed even when not every section is complete. Pending answers are synced first.
+  const submit = async () => {
+    const current = recordRef.current;
+    if (!current || !userId || submitting) return;
+    setSubmitError('');
+    try {
+      await writes.current;
+      await sync();
+      const latest = await backendSurveyRepo.get(userId, jobRef);
+      if (latest && Object.keys(latest.pending).length) {
+        setSubmitError('Some answers have not synced yet. Resolve the sync problem and try again.');
+        return;
+      }
+      await submitSurvey({
+        jobId: current.survey.jobId,
+        sessionId: current.survey.sessionId,
+        userId,
+        jobRef,
+      }).unwrap();
+      navigate(PATHS.SURVEYOR_ROOT);
+    } catch (reason) {
+      if (active.current) setSubmitError(message(reason));
+    }
+  };
+
   useEffect(() => {
     if (!record || isReadOnly(record.survey.status) || !online || syncError || storageError || !Object.keys(record.pending).length) return;
     const timer = window.setTimeout(() => void sync(), 1000);
@@ -307,7 +315,12 @@ function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: s
   const readOnly = isReadOnly(record.survey.status);
 
   return (
-    <RunbookShell jobRef={jobRef} onContinue={next ? openNext : undefined}>
+    <RunbookShell
+      jobRef={jobRef}
+      onContinue={() => void submit()}
+      continueDisabled={readOnly || submitting || busy || writing || !online || !!storageError}
+    >
+      {submitError && <Callout tone="danger">Could not submit the survey: {submitError}</Callout>}
       <div className={styles.titleRow}>
         <div>
           <h2 className={styles.jobTitle}>{record.survey.jobRef}</h2>
@@ -375,7 +388,7 @@ function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: s
               {section.repeatPerFloor && <Callout tone="warning">Floor-specific answers are unavailable until floor creation is supported by the API.</Callout>}
               <fieldset disabled={section.repeatPerFloor} className={styles.questions}>
                 {[...section.items].sort((a, b) => a.sortOrder - b.sortOrder).map((item) => (
-                  <Question key={item.id} item={item} answer={answerFor(record, section, item)} onChange={(answer) => edit(section.id, answer)} />
+                  <Question key={item.id} item={item} showNote={NOTE_SECTIONS.has(key)} answer={answerFor(record, section, item)} onChange={(answer) => edit(section.id, answer)} />
                 ))}
               </fieldset>
               {key === 'signoff' && <Callout tone="warning">Survey submission is not available through this API yet.</Callout>}

@@ -48,11 +48,16 @@ export function SurveyorLayout() {
     backTo = { to: PATHS.SURVEYOR_JOB_OVERVIEW(jobRef), label: 'Back to Job Overview' };
   }
 
+  // Desktop sidebar: My Jobs, Survey Runbook (+ Sign Out added by AppShell).
   const navItems: NavItem[] = [
     { to: PATHS.SURVEYOR_ROOT, label: 'My Jobs', icon: <BriefcaseBusiness size={20} />, end: true },
     ...(jobRef
       ? [{ to: PATHS.SURVEYOR_JOB_RUNBOOK(jobRef), label: 'Survey Runbook', icon: <ListChecks size={20} /> }]
       : []),
+  ];
+  // Tablet / mobile bottom bar: My Jobs, Survey Runbook, Account.
+  const bottomNavItems: NavItem[] = [
+    ...navItems,
     { to: PATHS.SURVEYOR_ACCOUNT, label: 'Account', icon: <UserRound size={20} /> },
   ];
 
@@ -64,7 +69,8 @@ export function SurveyorLayout() {
         roleLabel="Surveyor"
         userName={auth.name ?? ''}
         navItems={navItems}
-        bottomNavItems={navItems}
+        bottomNavItems={bottomNavItems}
+        sidebarDesktopOnly
         onSignOut={() => void signOut()}
         signingOut={signingOut}
       >
