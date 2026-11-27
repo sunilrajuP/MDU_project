@@ -1,5 +1,27 @@
 # Surveyor API contract (DRAFT v0.1, for backend review)
 
+## Active survey answer save (backend coordination required)
+
+When online, Start and Continue call `POST /api/jobs/{jobId}/survey-start` with the numeric job ID as the
+JSON body, then load `GET /api/jobs/{jobId}/survey`. The survey response may identify its
+session with either a numeric ID or a string ID; the client normalizes it to a string.
+
+The active runbook sends `PUT /api/jobs/{jobId}/survey-sessions/{sessionId}/sections/{sectionId}/answers`
+with a JSON array, for example:
+
+```json
+[
+  { "sectionId": 1, "answers": [{ "itemId": 11, "value": "true", "isFlagged": false, "note": "" }] },
+  { "sectionId": 2, "answers": [{ "itemId": 21, "value": "Example", "isFlagged": false, "note": "" }] }
+]
+```
+
+The path identifies the card being saved. The array includes that card and preceding cards with
+answers or a completed status, in survey order. The same format is used for autosave and retry.
+The backend must accept the array, save every included card, and return the full survey with the
+sent values confirmed. Failed or unconfirmed answers remain on the device for retry. Photo and
+per-floor answers are not yet supported by this runbook.
+
 Status: the Surveyor UI is built against mock data behind `VITE_USE_MOCK_SURVEYOR_API=true`. The UI only uses RTK Query hooks, so swapping to these endpoints needs no UI change. This draft covers the pre-runbook screens, the runbook shell, WHS, BFD, External, Internal Network, floor plans, photo/video and sign-off. Question catalogues for WHS, External Network, NBN Design Inputs and BoM are delivered via the config endpoint (section 3), so the backend owns them.
 
 Open items are marked **[TBC]**. Where a field is inferred from a screenshot and not from a spec, it is marked **[inferred]**.

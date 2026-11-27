@@ -27,6 +27,7 @@ export function ReturnedJobCard({ job, surveyorName }: Readonly<{ job: SurveyorJ
     <Card className={styles.card}>
       <Link
         to={PATHS.SURVEYOR_JOB_RUNBOOK(job.jobRef)}
+        state={{ startSurvey: true }}
         className={styles.link}
         aria-label={`Rework ${job.siteName} ${job.jobRef}`}
       >

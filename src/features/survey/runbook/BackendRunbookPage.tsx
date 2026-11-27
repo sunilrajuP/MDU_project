@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { useGetBackendSurveyQuery, useSaveBackendSurveyAnswersMutation } from '@/api/surveyorApi';
+import { Link, useLocation, useParams } from 'react-router-dom';
+import { useGetBackendSurveyQuery, useSaveBackendSurveyAnswersMutation, useStartSurveyMutation } from '@/api/surveyorApi';
 import { PATHS } from '@/app/paths';
 import { Button } from '@/components/ui/Button';
 import { Callout } from '@/components/ui/Callout';
@@ -11,7 +11,7 @@ import { runbookRepo } from '@/data/repos/runbookRepo';
 import type { BackendSurveyRecord } from '@/data/db/schema';
 import { selectAuth } from '@/features/auth/authSlice';
 import { useAppSelector } from '@/store/hooks';
-import type { SurveyAnswer, SurveyItem, SurveySection } from '@/types/backendSurvey';
+import type { SurveyAnswer, SurveyCardAnswers, SurveyItem, SurveySection } from '@/types/backendSurvey';
 import type { SectionKey } from '@/types/surveyor';
 import { useOnlineStatus } from '../useOnlineStatus';
 import { RunbookShell } from './shell/RunbookShell';
@@ -45,6 +45,21 @@ function answerFor(record: BackendSurveyRecord, section: SurveySection, item: Su
     isFlagged: item.isFlagged,
     note: item.note ?? '',
   };
+}
+
+function cardsThrough(record: BackendSurveyRecord, sectionId: number): SurveyCardAnswers[] {
+  const sections = [...record.survey.sections].sort((a, b) => a.sortOrder - b.sortOrder);
+  const end = sections.findIndex((section) => section.id === sectionId);
+  if (end < 0) throw new Error('The survey section could not be found.');
+  return sections.slice(0, end + 1).flatMap((section) => {
+    const answers = section.repeatPerFloor ? [] : section.items
+      .filter((item) => (item.answerType === 'TEXT' || item.answerType === 'YES_NO_NA') &&
+        (pendingAnswer(record, section.id, item.id) !== undefined || item.isAnswered))
+      .map((item) => answerFor(record, section, item));
+    return section.id === sectionId || section.isCompleted || answers.length > 0
+      ? [{ sectionId: section.id, answers }]
+      : [];
+  });
 }
 
 function Question({
@@ -99,13 +114,17 @@ function Question({
 export function BackendRunbookPage() {
   const { jobRef = '' } = useParams();
   const { userId } = useAppSelector(selectAuth);
+  const { state } = useLocation();
+  const startRequested = state !== null && typeof state === 'object' && 'startSurvey' in state && state.startSurvey === true;
   if (!userId || !jobRef) return <RunbookShell jobRef={jobRef}><p role="status">Loading survey…</p></RunbookShell>;
-  return <BackendRunbook key={JSON.stringify([userId, jobRef])} userId={userId} jobRef={jobRef} />;
+  return <BackendRunbook key={JSON.stringify([userId, jobRef])} userId={userId} jobRef={jobRef} startRequested={startRequested} />;
 }
 
-function BackendRunbook({ userId, jobRef }: Readonly<{ userId: string; jobRef: string }>) {
+function BackendRunbook({ userId, jobRef, startRequested }: Readonly<{ userId: string; jobRef: string; startRequested: boolean }>) {
   const online = useOnlineStatus();
-  const query = useGetBackendSurveyQuery({ jobRef, userId }, { refetchOnMountOrArgChange: true });
+  const [startState, setStartState] = useState<'pending' | 'ready' | 'failed'>(startRequested ? 'pending' : 'ready');
+  const [startSurvey] = useStartSurveyMutation();
+  const query = useGetBackendSurveyQuery({ jobRef, userId }, { skip: startState !== 'ready', refetchOnMountOrArgChange: true });
   const [saveAnswers] = useSaveBackendSurveyAnswersMutation();
   const [record, setRecord] = useState<BackendSurveyRecord>();
   const [error, setError] = useState('');
@@ -120,6 +139,28 @@ function BackendRunbook({ userId, jobRef }: Readonly<{ userId: string; jobRef: s
   const writeCount = useRef(0);
   const saving = useRef(false);
   const active = useRef(true);
+  const startRequest = useRef<Promise<unknown> | null>(null);
+
+  useEffect(() => {
+    if (!startRequested) return;
+    let mounted = true;
+    const request = startRequest.current ?? (navigator.onLine
+      ? startSurvey({ jobRef, userId }).unwrap()
+      : Promise.resolve());
+    startRequest.current = request;
+    void request.then(() => {
+      if (mounted) setStartState('ready');
+    }, (reason: unknown) => {
+      if (!mounted) return;
+      if (typeof reason === 'object' && reason !== null && 'status' in reason && reason.status === 0) {
+        setStartState('ready');
+      } else {
+        setError(message(reason));
+        setStartState('failed');
+      }
+    });
+    return () => { mounted = false; };
+  }, [jobRef, userId, startRequested, startSurvey]);
 
   const setCurrent = useCallback((next: BackendSurveyRecord) => {
     recordRef.current = next;
@@ -192,7 +233,7 @@ function BackendRunbook({ userId, jobRef }: Readonly<{ userId: string; jobRef: s
     }
   };
 
-  const sync = useCallback(async () => {
+  const sync = useCallback(async (requestedSectionId?: number) => {
     if (saving.current || !userId || !recordRef.current || isReadOnly(recordRef.current.survey.status) ||
         !navigator.onLine || storageError) return;
     saving.current = true;
@@ -202,19 +243,23 @@ function BackendRunbook({ userId, jobRef }: Readonly<{ userId: string; jobRef: s
       await writes.current;
       let current = await backendSurveyRepo.get(userId, jobRef);
       if (!current) throw new Error('The local survey could not be found.');
-      for (const section of current.survey.sections) {
+      const sections = [...current.survey.sections].sort((a, b) => a.sortOrder - b.sortOrder);
+      for (const section of sections) {
         const answers = section.items
           .map((item) => pendingAnswer(current!, section.id, item.id))
           .filter((answer): answer is SurveyAnswer => answer !== undefined);
-        if (!answers.length) continue;
+        if (!answers.length && section.id !== requestedSectionId) continue;
+        const cards = cardsThrough(current, section.id);
         const response = await saveAnswers({
           jobId: current.survey.jobId,
           userId,
           sessionId: current.survey.sessionId,
           sectionId: section.id,
-          answers,
+          cards,
         }).unwrap();
-        current = await backendSurveyRepo.acknowledge(userId, jobRef, response, section.id, answers);
+        for (const card of cards) {
+          current = await backendSurveyRepo.acknowledge(userId, jobRef, response, card.sectionId, card.answers);
+        }
         if (active.current) setCurrent(current);
       }
       if (Object.keys(current.pending).length) {
@@ -286,8 +331,9 @@ function BackendRunbook({ userId, jobRef }: Readonly<{ userId: string; jobRef: s
       />
       <div className={styles.listHeader}><span className={styles.listTitle}>Your survey steps · {sections.length} steps</span></div>
       <div className={styles.list}>
-        {sections.map((section) => {
+        {sections.map((section, index) => {
           const key = SECTION_KEYS[section.code];
+          const following = sections[index + 1];
           const count = section.items.filter((item) => {
             const draft = pendingAnswer(record, section.id, item.id);
             return draft ? draft.value.trim() !== '' : item.isAnswered;
@@ -312,6 +358,19 @@ function BackendRunbook({ userId, jobRef }: Readonly<{ userId: string; jobRef: s
               expanded={expanded === key}
               readOnly={readOnly || busy}
               onToggle={() => setExpanded(expanded === key ? null : key)}
+              footer={following && (
+                <Button
+                  type="button"
+                  disabled={busy || !!storageError}
+                  onClick={() => {
+                    if (!readOnly) void sync(section.id);
+                    setExpanded(SECTION_KEYS[following.code]);
+                    window.requestAnimationFrame(() => document.getElementById(`runbook-${SECTION_KEYS[following.code]}`)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' }));
+                  }}
+                >
+                  Next
+                </Button>
+              )}
             >
               {section.repeatPerFloor && <Callout tone="warning">Floor-specific answers are unavailable until floor creation is supported by the API.</Callout>}
               <fieldset disabled={section.repeatPerFloor} className={styles.questions}>

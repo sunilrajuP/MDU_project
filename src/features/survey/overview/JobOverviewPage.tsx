@@ -6,7 +6,7 @@ import { Callout } from '@/components/ui/Callout';
 import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { StatusChip } from '@/components/ui/StatusChip';
-import { useGetSiteInfoQuery, useGetSurveyorJobQuery, useStartSurveyMutation } from '@/api/surveyorApi';
+import { useGetSiteInfoQuery, useGetSurveyorJobQuery } from '@/api/surveyorApi';
 import { PATHS } from '@/app/paths';
 import { formatClock, formatCoordinates, formatShortDateUpper } from '../format';
 import { DISPLAY_STATUS } from '../jobs/jobPresentation';
@@ -19,7 +19,6 @@ export function JobOverviewPage() {
   const navigate = useNavigate();
   const { data: job, isLoading, isError } = useGetSurveyorJobQuery(jobRef);
   const { data: siteInfoData } = useGetSiteInfoQuery(jobRef);
-  const [startSurvey, { isLoading: starting, isError: startFailed }] = useStartSurveyMutation();
   const [basemap, setBasemap] = useState<Basemap>('terrain');
   const gps = useGpsFix();
 
@@ -36,16 +35,8 @@ export function JobOverviewPage() {
   const contact = siteInfoData?.siteInfo.stakeholder;
   const actionLabel = job.status === 'returned' ? 'Rework' : job.surveyStarted ? 'Continue Survey' : 'Start Survey';
 
-  async function handleStart() {
-    // A survey that already exists is resumed as-is; otherwise the runbook is created first.
-    if (!job?.surveyStarted) {
-      try {
-        await startSurvey({ jobRef }).unwrap();
-      } catch {
-        return;
-      }
-    }
-    navigate(PATHS.SURVEYOR_JOB_RUNBOOK(jobRef));
+  function handleStart() {
+    navigate(PATHS.SURVEYOR_JOB_RUNBOOK(jobRef), { state: { startSurvey: true } });
   }
 
   return (
@@ -130,11 +121,9 @@ export function JobOverviewPage() {
         </Card>
       </div>
 
-      {startFailed && <Callout tone="danger">The survey could not be started. Please try again.</Callout>}
-
       <div className={styles.actionBar}>
-        <Button type="button" className={styles.wide} onClick={() => void handleStart()} disabled={starting}>
-          {starting ? 'Starting…' : actionLabel}
+        <Button type="button" className={styles.wide} onClick={handleStart}>
+          {actionLabel}
         </Button>
       </div>
     </div>

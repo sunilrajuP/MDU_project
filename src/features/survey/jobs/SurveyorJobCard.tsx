@@ -49,7 +49,7 @@ export function SurveyorJobCard({ job }: Readonly<{ job: SurveyorJobSummary }>) 
             type="button"
             variant="outline"
             className={styles.action}
-            onClick={() => navigate(action.to)}
+            onClick={() => navigate(action.to, { state: { startSurvey: job.status !== 'not_started' } })}
             aria-label={`${action.label} for ${job.siteName}`}
           >
             {action.label}

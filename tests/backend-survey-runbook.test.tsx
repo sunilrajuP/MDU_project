@@ -10,8 +10,9 @@ import { authRepo } from '@/data/repos/authRepo';
 import { backendSurveyRepo } from '@/data/repos/backendSurveyRepo';
 import { jobsRepo } from '@/data/repos/jobsRepo';
 import authReducer, { authHydrated } from '@/features/auth/authSlice';
+import { SurveyorJobCard } from '@/features/survey/jobs/SurveyorJobCard';
 import { BackendRunbookPage } from '@/features/survey/runbook/BackendRunbookPage';
-import type { BackendSurvey } from '@/types/backendSurvey';
+import type { BackendSurvey, SurveyCardAnswers } from '@/types/backendSurvey';
 import type { Job } from '@/types/domain';
 
 const session = { userId: '7', name: 'Surveyor', role: 'Surveyor' as const, accessToken: 'test-token' };
@@ -49,6 +50,18 @@ function survey(): BackendSurvey {
   };
 }
 
+function acceptCards(data: BackendSurvey, cards: SurveyCardAnswers[]) {
+  for (const card of cards) {
+    const section = data.sections.find((entry) => entry.id === card.sectionId)!;
+    for (const answer of card.answers) {
+      const item = section.items.find((entry) => entry.id === answer.itemId)!;
+      Object.assign(item, {
+        responseValue: answer.value, isFlagged: answer.isFlagged, note: answer.note, isAnswered: true,
+      });
+    }
+  }
+}
+
 function makeStore() {
   const store = configureStore({
     reducer: { auth: authReducer, [baseApi.reducerPath]: baseApi.reducer, [surveyorApi.reducerPath]: surveyorApi.reducer },
@@ -58,10 +71,10 @@ function makeStore() {
   return store;
 }
 
-function renderPage(store: ReturnType<typeof makeStore>) {
+function renderPage(store: ReturnType<typeof makeStore>, startSurvey = false) {
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/survey/jobs/MDU-000006/runbook']}>
+      <MemoryRouter initialEntries={[{ pathname: '/survey/jobs/MDU-000006/runbook', state: { startSurvey } }]}>
         <Routes><Route path="/survey/jobs/:jobRef/runbook" element={<BackendRunbookPage />} /></Routes>
       </MemoryRouter>
     </Provider>,
@@ -80,6 +93,100 @@ afterEach(() => {
 });
 
 describe('backend survey runbook', () => {
+  it('starts a session when continuing a survey from its job card', async () => {
+    const fetchMock = vi.fn(async () => Response.json(survey()));
+    vi.stubGlobal('fetch', fetchMock);
+    render(
+      <Provider store={makeStore()}>
+        <MemoryRouter initialEntries={['/survey']}>
+          <Routes>
+            <Route path="/survey" element={<SurveyorJobCard job={{
+              jobRef: job.jobRef!, siteName: job.siteName, address: job.address, status: 'in_progress',
+              scheduledDate: '2026-01-01', progress: null, sync: { state: 'synced', lastSyncedAt: job.updatedAt }, returned: null,
+            }} />} />
+            <Route path="/survey/jobs/:jobRef/runbook" element={<BackendRunbookPage />} />
+          </Routes>
+        </MemoryRouter>
+      </Provider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Continue Survey for Test Site' }));
+    expect(await screen.findByRole('button', { name: /WHS Check/, expanded: false })).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledWith('/api/jobs/6/survey-start', expect.objectContaining({ method: 'POST', body: '6' }));
+  });
+
+  it('starts or resumes the survey before loading the runbook', async () => {
+    const requests: { url: string; method: string; body: unknown }[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+      requests.push({
+        url, method: init?.method ?? 'GET',
+        body: init?.body ? JSON.parse(String(init.body)) : undefined,
+      });
+      return Response.json(survey());
+    }));
+    renderPage(makeStore(), true);
+    expect(await screen.findByRole('button', { name: /WHS Check/, expanded: false })).toBeTruthy();
+    expect(requests.slice(0, 2)).toEqual([
+      { url: '/api/jobs/6/survey-start', method: 'POST', body: 6 },
+      { url: '/api/jobs/6/survey', method: 'GET', body: undefined },
+    ]);
+  });
+
+  it('shows the start error and does not load the survey if starting fails', async () => {
+    const fetchMock = vi.fn(async () => Response.json({ message: 'Cannot start survey' }, { status: 400 }));
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(makeStore(), true);
+    expect(await screen.findByText(/Cannot start survey/)).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the cached survey offline without starting a session', async () => {
+    await backendSurveyRepo.receive('7', 'MDU-000006', survey());
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    const fetchMock = vi.fn(async () => { throw new TypeError('Network unavailable'); });
+    vi.stubGlobal('fetch', fetchMock);
+    renderPage(makeStore(), true);
+    expect(await screen.findByRole('button', { name: /WHS Check/, expanded: false })).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith('/api/jobs/6/survey', expect.objectContaining({ method: 'GET' }));
+  });
+
+  it('loads and saves a survey whose backend session ID is numeric', async () => {
+    const data = survey();
+    const requests: string[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT') {
+        requests.push(url);
+        acceptCards(data, JSON.parse(String(init.body)));
+      }
+      return Response.json({ ...data, sessionId: 6 });
+    }));
+    renderPage(makeStore());
+    fireEvent.click(await screen.findByRole('button', { name: /WHS Check/, expanded: false }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'PPE confirmed?' })).getByRole('radio', { name: 'Yes' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await waitFor(async () => {
+      expect(requests).toContain('/api/jobs/6/survey-sessions/6/sections/1/answers');
+      const saved = await backendSurveyRepo.get('7', 'MDU-000006');
+      expect(saved?.survey.sessionId).toBe('6');
+      expect(Object.keys(saved!.pending)).toHaveLength(0);
+    });
+    expect(screen.queryByText(/could not sync/)).toBeNull();
+  });
+
+  it('retains pending answers when a save returns a different numeric session ID', async () => {
+    const data = survey();
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT') acceptCards(data, JSON.parse(String(init.body)));
+      return Response.json({ ...data, sessionId: init?.method === 'PUT' ? 7 : 6 });
+    }));
+    renderPage(makeStore());
+    fireEvent.click(await screen.findByRole('button', { name: /WHS Check/, expanded: false }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'PPE confirmed?' })).getByRole('radio', { name: 'Yes' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByText(/invalid or different survey after saving/)).toBeTruthy();
+    expect((await backendSurveyRepo.get('7', 'MDU-000006'))?.pending['1:11']?.value).toBe('true');
+  });
+
   it('loads by numeric job ID and sends selected answers to the real section endpoint', async () => {
     const data = survey();
     const requests: { url: string; method: string; body: unknown }[] = [];
@@ -87,10 +194,7 @@ describe('backend survey runbook', () => {
       const body = init?.body ? JSON.parse(String(init.body)) : undefined;
       requests.push({ url, method: init?.method ?? 'GET', body });
       if (init?.method === 'PUT') {
-        const answer = body.answers[0];
-        Object.assign(data.sections[0].items[0], {
-          responseValue: answer.value, isFlagged: answer.isFlagged, note: answer.note, isAnswered: true,
-        });
+        acceptCards(data, body);
       }
       return Response.json(data);
     }));
@@ -104,7 +208,7 @@ describe('backend survey runbook', () => {
     expect(requests.find((request) => request.method === 'PUT')).toEqual({
       url: '/api/jobs/6/survey-sessions/session-1/sections/1/answers',
       method: 'PUT',
-      body: { answers: [{ itemId: 11, value: 'true', isFlagged: false, note: '' }] },
+      body: [{ sectionId: 1, answers: [{ itemId: 11, value: 'true', isFlagged: false, note: '' }] }],
     });
     await waitFor(async () => expect(Object.keys((await backendSurveyRepo.get('7', 'MDU-000006'))!.pending)).toHaveLength(0));
     fireEvent.click(screen.getByRole('button', { name: /Internal Network/ }));
@@ -119,10 +223,7 @@ describe('backend survey runbook', () => {
     vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
       if (offline || (init?.method === 'PUT' && failSave)) throw new TypeError('Network unavailable');
       if (init?.method === 'PUT') {
-        const answer = JSON.parse(String(init.body)).answers[0];
-        Object.assign(data.sections[0].items[0], {
-          responseValue: answer.value, isFlagged: answer.isFlagged, note: answer.note, isAnswered: true,
-        });
+        acceptCards(data, JSON.parse(String(init.body)));
       }
       return Response.json(data);
     }));
@@ -140,6 +241,64 @@ describe('backend survey runbook', () => {
     expect(screen.getByText(/Offline: answers are saved/)).toBeTruthy();
     expect((await backendSurveyRepo.get('7', 'MDU-000006'))?.pending['1:11'].value).toBe('false');
     failSave = false;
+    offline = false;
+    fireEvent(window, new Event('online'));
+    await waitFor(async () => expect(Object.keys((await backendSurveyRepo.get('7', 'MDU-000006'))!.pending)).toHaveLength(0), { timeout: 5000 });
+  });
+
+  it('moves to the next card and sends all preceding answers in card order', async () => {
+    const data = survey();
+    data.sections[1].repeatPerFloor = false;
+    data.sections.push({ id: 9, code: 'SIGN_OFF', title: 'Sign off', sortOrder: 3, repeatPerFloor: false, isCompleted: false, items: [] });
+    const requests: { url: string; body: SurveyCardAnswers[] }[] = [];
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT') {
+        const body = JSON.parse(String(init.body)) as SurveyCardAnswers[];
+        requests.push({ url, body });
+        acceptCards(data, body);
+      }
+      return Response.json(data);
+    }));
+    renderPage(makeStore());
+    fireEvent.click(await screen.findByRole('button', { name: /WHS Check/, expanded: false }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'PPE confirmed?' })).getByRole('radio', { name: 'Yes' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('button', { name: /WHS Check/, expanded: false })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Internal Network/, expanded: true })).toBeTruthy();
+    await waitFor(() => expect(requests).toHaveLength(1));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Next' })).toHaveProperty('disabled', false));
+    fireEvent.change(screen.getByRole('textbox', { name: /^Floor entry/ }), { target: { value: 'Level 1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('button', { name: /Internal Network/, expanded: false })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Sign off/, expanded: true })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Next' })).toBeNull();
+    await waitFor(() => expect(requests).toHaveLength(2));
+    expect(requests[1]).toEqual({
+      url: '/api/jobs/6/survey-sessions/session-1/sections/4/answers',
+      body: [
+        { sectionId: 1, answers: [{ itemId: 11, value: 'true', isFlagged: false, note: '' }] },
+        { sectionId: 4, answers: [{ itemId: 41, value: 'Level 1', isFlagged: false, note: '' }] },
+      ],
+    });
+  });
+
+  it('moves to the next card offline and retains its answers for retry', async () => {
+    let offline = false;
+    const data = survey();
+    vi.spyOn(navigator, 'onLine', 'get').mockImplementation(() => !offline);
+    vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => {
+      if (offline) throw new TypeError('Network unavailable');
+      if (init?.method === 'PUT') acceptCards(data, JSON.parse(String(init.body)));
+      return Response.json(data);
+    }));
+    renderPage(makeStore());
+    fireEvent.click(await screen.findByRole('button', { name: /WHS Check/, expanded: false }));
+    offline = true;
+    fireEvent(window, new Event('offline'));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: 'PPE confirmed?' })).getByRole('radio', { name: 'No' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(screen.getByRole('button', { name: /Internal Network/, expanded: true })).toBeTruthy();
+    await waitFor(async () => expect((await backendSurveyRepo.get('7', 'MDU-000006'))?.pending['1:11']?.value).toBe('false'));
     offline = false;
     fireEvent(window, new Event('online'));
     await waitFor(async () => expect(Object.keys((await backendSurveyRepo.get('7', 'MDU-000006'))!.pending)).toHaveLength(0), { timeout: 5000 });

@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from 'react';
+import type { PropsWithChildren, ReactNode } from 'react';
 import { Check, ChevronDown, ChevronUp, Lock } from 'lucide-react';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { StatusChip } from '@/components/ui/StatusChip';
@@ -19,6 +19,7 @@ interface SectionAccordionProps {
   /** After a successful submit every section is read-only (controls inside the body are disabled). */
   readOnly?: boolean;
   onToggle: () => void;
+  footer?: ReactNode;
 }
 
 /** One of the 9 runbook rows: icon, title, state chip + progress, and the section body when expanded. */
@@ -32,6 +33,7 @@ export function SectionAccordion({
   expanded,
   readOnly = false,
   onToggle,
+  footer,
   children,
 }: Readonly<PropsWithChildren<SectionAccordionProps>>) {
   const complete = summary.status === 'complete';
@@ -79,6 +81,7 @@ export function SectionAccordion({
           <fieldset className={styles.fieldset} disabled={readOnly}>
             {children}
           </fieldset>
+          {footer && <div className={styles.footer}>{footer}</div>}
         </div>
       )}
     </section>
