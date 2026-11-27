@@ -5,7 +5,7 @@ import { ManagerDashboardPage } from '@/features/manager/ManagerDashboardPage';
 import { CreateJobPage } from '@/features/createJob/CreateJobPage';
 import { JobDetailsPage } from '@/features/jobs/JobDetailsPage';
 import { SurveyorLayout } from '@/features/survey/layout/SurveyorLayout';
-import { RunbookPage } from '@/features/survey/runbook/RunbookPage';
+import { BackendRunbookPage } from '@/features/survey/runbook/BackendRunbookPage';
 import { MyJobsPage } from '@/features/survey/jobs/MyJobsPage';
 import { JobOverviewPage } from '@/features/survey/overview/JobOverviewPage';
 import { MapPage } from '@/features/survey/overview/MapPage';
@@ -49,7 +49,7 @@ export const router = createBrowserRouter([
     path: PATHS.SURVEYOR_JOB_RUNBOOK_ROUTE,
     element: (
       <RequireRole roles={['Surveyor']}>
-        <RunbookPage />
+        <BackendRunbookPage />
       </RequireRole>
     ),
   },

@@ -35,6 +35,7 @@ import { apiRequest, baseApi } from './baseApi';
 import { authRepo } from '@/data/repos/authRepo';
 import { jobsRepo } from '@/data/repos/jobsRepo';
 import type { Job } from '@/types/domain';
+import { isBackendSurvey, type BackendSurvey, type SurveyAnswer } from '@/types/backendSurvey';
 
 // Backend site-information DTO (GET/PUT /api/jobs/{jobId}/site-information).
 interface SiteInformationDto {
@@ -153,6 +154,46 @@ export const surveyorApi = createApi({
   baseQuery: fakeBaseQuery<ApiErrorShape>(),
   tagTypes: ['SurveyorJobs', 'SurveyorJob', 'Runbook', 'SiteInfo'],
   endpoints: (builder) => ({
+    getBackendSurvey: builder.query<BackendSurvey, { jobRef: string; userId: string }>({
+      async queryFn({ jobRef, userId }, { dispatch }) {
+        const result = await apiRequest<unknown>(`/api/jobs/${await resolveJobId(jobRef)}/survey`, dispatch, undefined, userId);
+        if ('error' in result) return result;
+        if (!isBackendSurvey(result.data) || result.data.jobRef !== jobRef) {
+          return { error: { status: 422, message: 'The server returned an invalid survey or a different job.' } };
+        }
+        return { data: result.data };
+      },
+    }),
+
+    saveBackendSurveyAnswers: builder.mutation<BackendSurvey, {
+      jobId: number;
+      userId: string;
+      sessionId: string;
+      sectionId: number;
+      answers: SurveyAnswer[];
+    }>({
+      async queryFn({ jobId, userId, sessionId, sectionId, answers }, { dispatch }) {
+        const result = await apiRequest<unknown>(
+          `/api/jobs/${encodeURIComponent(String(jobId))}/survey-sessions/${encodeURIComponent(sessionId)}/sections/${encodeURIComponent(String(sectionId))}/answers`,
+          dispatch,
+          { method: 'PUT', body: { answers } }, userId,
+        );
+        if ('error' in result) return result;
+        if (!isBackendSurvey(result.data) || result.data.jobId !== jobId || result.data.sessionId !== sessionId) {
+          return { error: { status: 422, message: 'The server returned an invalid or different survey after saving.' } };
+        }
+        const section = result.data.sections.find((entry) => entry.id === sectionId);
+        if (!section || answers.some((answer) => {
+          const item = section.items.find((entry) => entry.id === answer.itemId);
+          return !item || item.responseValue !== answer.value || item.isFlagged !== answer.isFlagged ||
+            (item.note ?? '') !== answer.note;
+        })) {
+          return { error: { status: 422, message: 'The server did not confirm the saved answers.' } };
+        }
+        return { data: result.data };
+      },
+    }),
+
     getSurveyorJobs: builder.query<GetSurveyorJobsResponse, { status?: SurveyorJobStatus } | void>({
       // Reuses baseApi's getJobs (GET /api/jobs, auth, local merge) and maps its Jobs to the Surveyor shape.
       // The status filter is applied client-side by MyJobsPage, so no server-side status is sent.
@@ -347,6 +388,8 @@ export const surveyorApi = createApi({
 });
 
 export const {
+  useGetBackendSurveyQuery,
+  useSaveBackendSurveyAnswersMutation,
   useGetSurveyorJobsQuery,
   useGetSurveyorJobQuery,
   useConfirmSiteLocationMutation,
