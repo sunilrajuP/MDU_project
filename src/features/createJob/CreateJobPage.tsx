@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectCurrentActor } from '@/features/auth/authSlice';
 import { createJob, editJob } from '@/features/jobs/jobsThunks';
@@ -296,6 +297,19 @@ function JobForm({ backPath, job }: CreateJobPageProps & { job?: Job }) {
   return (
     <div className={styles.page}>
       <div className={styles.body}>
+        <Link
+          to={backPath}
+          className={styles.backLink}
+          style={{ textDecoration: 'none', marginBottom: '1rem' }}
+          onClick={(e) => {
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+            e.preventDefault();
+            void navigate(-1);
+          }}
+        >
+          <ChevronLeft size={14} aria-hidden="true" />
+          Back
+        </Link>
         <form id="create-job-form" className={styles.card} onSubmit={handleSubmit}>
           <fieldset className={styles.fields} disabled={submitting}>
             <div className={field.field}>

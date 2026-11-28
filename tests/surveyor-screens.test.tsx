@@ -32,7 +32,7 @@ describe('My Jobs', () => {
   it('lists the assigned jobs with status, sync, progress and the right action per state', async () => {
     renderAt('/survey');
 
-    expect(await screen.findByText('Assigned to Alex Morgan · 4 jobs')).toBeTruthy();
+    expect(await screen.findByText('Assigned jobs · 4 jobs')).toBeTruthy();
     const block = screen.getByRole('article', { name: 'Block A MDU-000001' });
     expect(within(block).getByText('In Progress')).toBeTruthy();
     expect(within(block).getByText('35% complete · Floor Survey')).toBeTruthy();
@@ -47,24 +47,24 @@ describe('My Jobs', () => {
 
   it('gives every mock job a unique reference', async () => {
     renderAt('/survey');
-    await screen.findByText(/Assigned to Alex Morgan/);
+    await screen.findByText(/Assigned jobs/);
     const refs = screen.getAllByText(/^MDU-\d{6}$/).map((node) => node.textContent);
     expect(new Set(refs).size).toBe(refs.length);
   });
 
   it('filters to In Progress', async () => {
     renderAt('/survey');
-    await screen.findByText(/Assigned to Alex Morgan · 4 jobs/);
+    await screen.findByText(/Assigned jobs · 4 jobs/);
     fireEvent.change(screen.getByLabelText('Filter jobs'), { target: { value: 'in_progress' } });
 
-    expect(screen.getByText('Assigned to Alex Morgan · 2 jobs')).toBeTruthy();
+    expect(screen.getByText('Assigned jobs · 2 jobs')).toBeTruthy();
     expect(screen.getByText('10 Smith Apartments')).toBeTruthy();
     expect(screen.queryByText('Parkside Residences')).toBeNull();
   });
 
   it('shows the returned banner and card in the Returned view', async () => {
     renderAt('/survey');
-    await screen.findByText(/Assigned to Alex Morgan/);
+    await screen.findByText(/Assigned jobs/);
     fireEvent.change(screen.getByLabelText('Filter jobs'), { target: { value: 'returned' } });
 
     expect(screen.getByText('Alex Morgan · 1 returned job')).toBeTruthy();
@@ -79,11 +79,11 @@ describe('My Jobs', () => {
       await store.dispatch(surveyorApi.endpoints.startSurvey.initiate({ jobRef: 'MDU-000004' }));
     });
     renderAt('/survey');
-    await screen.findByText(/Assigned to Alex Morgan/);
+    await screen.findByText(/Assigned jobs/);
     fireEvent.change(screen.getByLabelText('Filter jobs'), { target: { value: 'not_started' } });
 
     expect(screen.getByText('No jobs match this filter.')).toBeTruthy();
-    expect(screen.getByText('Assigned to Alex Morgan · 0 jobs')).toBeTruthy();
+    expect(screen.getByText('Assigned jobs · 0 jobs')).toBeTruthy();
   });
 });
 

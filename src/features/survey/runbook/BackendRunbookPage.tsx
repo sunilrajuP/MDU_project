@@ -8,11 +8,13 @@ import { ChoiceGroup } from '@/components/ui/ChoiceGroup';
 import { Input } from '@/components/ui/Input';
 import { backendSurveyRepo, pendingAnswer } from '@/data/repos/backendSurveyRepo';
 import { runbookRepo } from '@/data/repos/runbookRepo';
+import { mediaRepo } from '@/data/repos/mediaRepo';
 import type { BackendSurveyRecord } from '@/data/db/schema';
 import { selectAuth } from '@/features/auth/authSlice';
 import { useAppSelector } from '@/store/hooks';
 import { normalizeChoice, type SurveyAnswer, type SurveyCardAnswers, type SurveyItem, type SurveySection } from '@/types/backendSurvey';
-import type { SectionKey } from '@/types/surveyor';
+import type { MediaAttachment, SectionKey } from '@/types/surveyor';
+import { EvidenceCapture } from '../capture/EvidenceCapture';
 import { useOnlineStatus } from '../useOnlineStatus';
 import { RunbookShell } from './shell/RunbookShell';
 import { SectionAccordion } from './shell/SectionAccordion';
@@ -30,6 +32,9 @@ const SECTION_KEYS: Record<string, SectionKey> = {
   PRE_FLIGHT: 'preflight',
   SIGN_OFF: 'signoff',
 };
+
+// Sections whose every question carries photo upload + markup.
+const PHOTO_SECTIONS = new Set<SectionKey>(['external']);
 
 // Only these sections collect a per-question note.
 const NOTE_SECTIONS = new Set<SectionKey>(['whs', 'external', 'internal']);
@@ -55,15 +60,56 @@ function cardsForSection(record: BackendSurveyRecord, sectionId: number): Survey
   if (!section) throw new Error('The survey section could not be found.');
   const answers = section.repeatPerFloor ? [] : [...section.items]
     .sort((left, right) => left.sortOrder - right.sortOrder)
-    .filter((item) => item.answerType === 'TEXT' || item.answerType === 'YES_NO_NA')
-    .map((item) => answerFor(record, section, item));
+    .filter((item) => item.answerType === 'TEXT' || item.answerType === 'YES_NO_NA' || item.answerType === 'PHOTO')
+    .map((item): SurveyAnswer => item.answerType === 'PHOTO'
+      ? { itemId: item.id, value: '', isFlagged: false, note: '', photo: true }
+      : answerFor(record, section, item));
   return [{ sectionId: section.id, answers }];
 }
 
+interface PhotoTarget { jobRef: string; jobId: number; sessionId: string; sectionKey: SectionKey; disabled: boolean }
+
+/** Photo capture (with markup) for one survey item. Uploads go to the survey-session media API. */
+function ItemPhotos({ item, target }: Readonly<{ item: SurveyItem; target: PhotoTarget }>) {
+  const context = { sectionKey: target.sectionKey, itemCode: `item-${item.id}`, tag: `External · ${item.code}` };
+  const [media, setMedia] = useState<MediaAttachment[]>([]);
+  useEffect(() => {
+    let active = true;
+    void mediaRepo.forItem(target.jobRef, context).then((records) => {
+      if (active) {
+        setMedia(records.filter((record) => record.kind === 'photo')
+          .map((record) => ({ id: record.id, kind: record.kind, capturedAt: record.capturedAt, hasMarkup: !!record.markedBlob })));
+      }
+    }).catch(() => undefined);
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target.jobRef, target.sectionKey, item.id]);
+  return (
+    <EvidenceCapture
+      jobRef={target.jobRef}
+      context={context}
+      itemLabel={item.prompt}
+      value={media}
+      allowVideo={false}
+      disabled={target.disabled}
+      onChange={setMedia}
+      backendUpload={{ jobId: target.jobId, sessionId: target.sessionId, itemId: item.id }}
+    />
+  );
+}
+
 function Question({
-  item, answer, showNote, onChange,
-}: Readonly<{ item: SurveyItem; answer: SurveyAnswer; showNote: boolean; onChange: (answer: SurveyAnswer) => void }>) {
+  item, answer, showNote, photoTarget, onChange,
+}: Readonly<{ item: SurveyItem; answer: SurveyAnswer; showNote: boolean; photoTarget?: PhotoTarget; onChange: (answer: SurveyAnswer) => void }>) {
   if (item.answerType === 'PHOTO') {
+    if (photoTarget) {
+      return (
+        <div className={styles.question}>
+          <p>{item.prompt}{item.isRequired ? ' *' : ''}</p>
+          <ItemPhotos item={item} target={photoTarget} />
+        </div>
+      );
+    }
     return <Callout tone="warning">{item.prompt}: photo upload is not available yet.</Callout>;
   }
   if (item.answerType !== 'TEXT' && item.answerType !== 'YES_NO_NA') {
@@ -106,7 +152,8 @@ function Question({
         <input type="checkbox" checked={answer.isFlagged} onChange={(event) => onChange({ ...answer, isFlagged: event.target.checked })} />
         {' '}Flag this answer
       </label> */}
-      {item.minPhotos > 0 && <Callout tone="warning">This item also requires photos. Photo upload is not available yet.</Callout>}
+      {photoTarget && <ItemPhotos item={item} target={photoTarget} />}
+      {!photoTarget && item.minPhotos > 0 && <Callout tone="warning">This item also requires photos. Photo upload is not available yet.</Callout>}
     </div>
   );
 }
@@ -388,7 +435,12 @@ function BackendRunbook({ userId, jobRef }: Readonly<{ userId: string; jobRef: s
               {section.repeatPerFloor && <Callout tone="warning">Floor-specific answers are unavailable until floor creation is supported by the API.</Callout>}
               <fieldset disabled={section.repeatPerFloor} className={styles.questions}>
                 {[...section.items].sort((a, b) => a.sortOrder - b.sortOrder).map((item) => (
-                  <Question key={item.id} item={item} showNote={NOTE_SECTIONS.has(key)} answer={answerFor(record, section, item)} onChange={(answer) => edit(section.id, answer)} />
+                  <Question
+                    key={item.id}
+                    item={item}
+                    showNote={NOTE_SECTIONS.has(key)}
+                    photoTarget={PHOTO_SECTIONS.has(key) ? { jobRef, jobId: record.survey.jobId, sessionId: record.survey.sessionId, sectionKey: key, disabled: readOnly } : undefined}
+                    answer={answerFor(record, section, item)} onChange={(answer) => edit(section.id, answer)} />
                 ))}
               </fieldset>
               {key === 'signoff' && <Callout tone="warning">Survey submission is not available through this API yet.</Callout>}
