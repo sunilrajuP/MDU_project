@@ -4,6 +4,8 @@ export interface SurveyAnswer {
   isFlagged: boolean;
   note: string;
   floorId?: string;
+  /** Photo item: sent as value = null (photos upload separately through the media API). Never stored. */
+  photo?: boolean;
 }
 
 export interface SurveyCardAnswers {

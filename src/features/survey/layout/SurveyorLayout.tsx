@@ -46,6 +46,8 @@ export function SurveyorLayout() {
     backTo = { to: PATHS.SURVEYOR_ROOT, label: 'Back to My Jobs' };
   } else if (jobRef && matchPath({ path: PATHS.SURVEYOR_JOB_MAP_ROUTE, end: true }, pathname)) {
     backTo = { to: PATHS.SURVEYOR_JOB_OVERVIEW(jobRef), label: 'Back to Job Overview' };
+  } else if (jobRef && matchPath({ path: PATHS.SURVEYOR_JOB_SITE_INFO_ROUTE, end: true }, pathname)) {
+    backTo = { to: PATHS.SURVEYOR_JOB_OVERVIEW(jobRef), label: 'Back to Job Overview' };
   }
 
   // Desktop sidebar: My Jobs, Survey Runbook (+ Sign Out added by AppShell).

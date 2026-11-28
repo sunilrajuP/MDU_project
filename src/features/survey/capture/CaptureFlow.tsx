@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { StatusChip } from '@/components/ui/StatusChip';
-import { useUploadMediaMutation, useSaveMediaMarkupMutation } from '@/api/surveyorApi';
+import { useUploadMediaMutation, useUploadSurveyMediaMutation, useSaveMediaMarkupMutation } from '@/api/surveyorApi';
 import { mediaRepo } from '@/data/repos/mediaRepo';
 import { useAppSelector } from '@/store/hooks';
 import { selectAuth } from '@/features/auth/authSlice';
@@ -20,8 +20,16 @@ export interface CaptureFlowProps {
   kind: MediaKind;
   /** Re-open the markup editor for already stored evidence instead of capturing a new photo. */
   editMediaId?: string;
+  /** When set, photos upload to the survey-session media API instead of the legacy runbook endpoint. */
+  backendUpload?: BackendUploadTarget;
   onComplete: (attachment: MediaAttachment) => void;
   onClose: () => void;
+}
+
+export interface BackendUploadTarget {
+  jobId: number | string;
+  sessionId: number | string;
+  itemId: number;
 }
 
 type Step = 'loading' | 'capture' | 'preview' | 'markup';
@@ -46,9 +54,10 @@ const SAVE_ERROR = 'This could not be saved on the device. Free up storage and t
  * capture -> preview (Retake / Use) -> markup editor -> attach thumbnail to the question.
  * The original is persisted first and never modified; markup is stored as a separate copy.
  */
-export function CaptureFlow({ jobRef, context, itemLabel, kind, editMediaId, onComplete, onClose }: Readonly<CaptureFlowProps>) {
+export function CaptureFlow({ jobRef, context, itemLabel, kind, editMediaId, backendUpload, onComplete, onClose }: Readonly<CaptureFlowProps>) {
   const surveyorName = useAppSelector(selectAuth).name;
   const [uploadMedia] = useUploadMediaMutation();
+  const [uploadSurveyMedia] = useUploadSurveyMediaMutation();
   const [saveMediaMarkup] = useSaveMediaMarkupMutation();
 
   const [step, setStep] = useState<Step>(editMediaId ? 'loading' : 'capture');
@@ -120,7 +129,19 @@ export function CaptureFlow({ jobRef, context, itemLabel, kind, editMediaId, onC
           originalBlob: captured.blob,
         });
         setMediaId(id);
-        void uploadMedia({
+        if (backendUpload) {
+          void loadImage(captured.blob)
+            .then((loaded) => {
+              const { width, height } = loaded;
+              loaded.dispose();
+              return { width, height };
+            })
+            .catch(() => ({ width: undefined, height: undefined }))
+            .then(({ width, height }) =>
+              uploadSurveyMedia({ ...backendUpload, file: captured.blob, metadata: { capturedAt, width, height } }).unwrap())
+            .then(() => mediaRepo.markSynced(id))
+            .catch(() => mediaRepo.markFailed(id));
+        } else void uploadMedia({
           jobRef,
           file: captured.blob,
           meta: {
@@ -164,10 +185,18 @@ export function CaptureFlow({ jobRef, context, itemLabel, kind, editMediaId, onC
       const markedBlob = await renderMarkedBlob(image, objects, palette, { stamp, tag: context.tag });
       const markup = { objects, note, updatedAt: new Date().toISOString() };
       await mediaRepo.saveMarkup(mediaId, markedBlob, markup);
-      void saveMediaMarkup({ jobRef, mediaId, clientRequestId: crypto.randomUUID(), markup, markedFile: markedBlob })
-        .unwrap()
-        .then(() => mediaRepo.markSynced(mediaId))
-        .catch(() => undefined);
+      if (backendUpload) {
+        // The media API has no markup endpoint: the marked-up copy is uploaded as its own photo, the original stays.
+        void uploadSurveyMedia({ ...backendUpload, file: markedBlob, metadata: { capturedAt: markup.updatedAt, width: image.width, height: image.height } })
+          .unwrap()
+          .then(() => mediaRepo.markSynced(mediaId))
+          .catch(() => mediaRepo.markFailed(mediaId));
+      } else {
+        void saveMediaMarkup({ jobRef, mediaId, clientRequestId: crypto.randomUUID(), markup, markedFile: markedBlob })
+          .unwrap()
+          .then(() => mediaRepo.markSynced(mediaId))
+          .catch(() => undefined);
+      }
       onComplete(attachment(mediaId, objects.length > 0));
     } catch {
       setError(SAVE_ERROR);

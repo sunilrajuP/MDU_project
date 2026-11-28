@@ -3,7 +3,7 @@ import { Camera, Image as ImageIcon, Pencil, ScanLine, Trash2, Video } from 'luc
 import { StatusChip } from '@/components/ui/StatusChip';
 import { mediaRepo } from '@/data/repos/mediaRepo';
 import type { MediaAttachment, MediaContext, MediaKind } from '@/types/surveyor';
-import { CaptureFlow } from './CaptureFlow';
+import { CaptureFlow, type BackendUploadTarget } from './CaptureFlow';
 import { useMediaBlob, useObjectUrl } from './hooks';
 import { formatCaptureStamp } from './captureFormat';
 import styles from './EvidenceCapture.module.scss';
@@ -23,6 +23,8 @@ interface EvidenceCaptureProps {
   variant?: 'default' | 'plan';
   /** Floor code shown in the plan layout hint, e.g. B1. */
   planLabel?: string;
+  /** Upload target for the survey-session media API (backend runbook only). */
+  backendUpload?: BackendUploadTarget;
 }
 
 interface ActiveFlow {
@@ -87,6 +89,7 @@ export function EvidenceCapture({
   error,
   variant = 'default',
   planLabel,
+  backendUpload,
 }: Readonly<EvidenceCaptureProps>) {
   const [flow, setFlow] = useState<ActiveFlow | null>(null);
   const photoCount = value.filter((entry) => entry.kind === 'photo').length;
@@ -179,6 +182,7 @@ export function EvidenceCapture({
           itemLabel={itemLabel}
           kind={flow.kind}
           editMediaId={flow.editMediaId}
+          backendUpload={backendUpload}
           onComplete={handleComplete}
           onClose={() => setFlow(null)}
         />

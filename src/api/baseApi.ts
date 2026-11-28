@@ -257,7 +257,8 @@ async function requestJson<T>(
   session?: AuthSessionRecord,
 ): Promise<{ data: T } | { error: ApiErrorShape }> {
   const headers: Record<string, string> = {};
-  if (init.body !== undefined) headers["Content-Type"] = "application/json";
+  const isForm = typeof FormData !== "undefined" && init.body instanceof FormData;
+  if (init.body !== undefined && !isForm) headers["Content-Type"] = "application/json";
   if (init.idempotencyKey) headers["Idempotency-Key"] = init.idempotencyKey;
   if (session?.accessToken) headers.Authorization = `Bearer ${session.accessToken}`;
 
@@ -266,7 +267,7 @@ async function requestJson<T>(
     res = await fetch(`${AUTH_API_BASE_URL}${path}`, {
       method: init.method,
       headers,
-      body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
+      body: init.body === undefined ? undefined : isForm ? (init.body as FormData) : JSON.stringify(init.body),
     });
   } catch {
     const error: ApiErrorShape = {

@@ -56,6 +56,25 @@ const BUILDING_TYPE_OPTIONS = ['Vertical', 'Horizontal'];
 const GROUND_OPTIONS = ['Green field', 'Brown field'];
 
 // Response of POST /api/jobs/{jobId}/survey-start.
+export interface SurveyMediaDto {
+  id: number;
+  sessionId: number;
+  itemId: number;
+  floorId?: number | null;
+  contentType: string;
+  byteSize: number;
+  uploaded: boolean;
+}
+
+export interface UploadSurveyMediaRequest {
+  jobId: number | string;
+  sessionId: number | string;
+  itemId: number;
+  floorId?: number;
+  metadata?: { capturedAt?: string; width?: number; height?: number };
+  file: Blob;
+}
+
 // Response of POST /api/jobs/{jobId}/survey-start.
 interface StartSurveyDto {
   jobId: number;
@@ -314,7 +333,14 @@ export const surveyorApi = createApi({
         const result = await apiRequest<unknown>(
           `/api/jobs/${encodeURIComponent(String(jobId))}/survey-sessions/${encodeURIComponent(sessionId)}/sections/${encodeURIComponent(String(sectionId))}/answers`,
           dispatch,
-          { method: 'PUT', body: cards }, userId,
+          {
+            method: 'PUT',
+            // The API wants every item of the section; unanswered photo items go as value = null.
+            body: cards.map((card) => ({
+              ...card,
+              answers: card.answers.map(({ photo, ...answer }) => (photo ? { ...answer, value: null } : answer)),
+            })),
+          }, userId,
         );
         if ('error' in result) return result;
         let survey = parseBackendSurvey(result.data);
@@ -323,7 +349,7 @@ export const surveyorApi = createApi({
         }
         const unconfirmed = (current: BackendSurvey) => cards.some((card) => {
           const section = current.sections.find((entry) => entry.id === card.sectionId);
-          return !section || card.answers.some((answer) => {
+          return !section || card.answers.filter((answer) => !answer.photo).some((answer) => {
             const item = section.items.find((entry) => entry.id === answer.itemId);
             // "YES" and 'true' are the same Yes/No answer, so compare those in their normalised form.
             const same = item?.answerType === 'YES_NO_NA'
@@ -545,6 +571,22 @@ export const surveyorApi = createApi({
         }),
     }),
 
+    // Real backend: POST /api/jobs/{jobId}/survey-sessions/{sessionId}/media (multipart; file part last).
+    uploadSurveyMedia: builder.mutation<SurveyMediaDto, UploadSurveyMediaRequest>({
+      async queryFn({ jobId, sessionId, itemId, floorId, metadata, file }, { dispatch }) {
+        const form = new FormData();
+        form.append('itemId', String(itemId));
+        if (floorId !== undefined) form.append('floorId', String(floorId));
+        if (metadata) form.append('metadata', JSON.stringify(metadata));
+        form.append('file', file, file.type === 'image/png' ? 'photo.png' : 'photo.jpg');
+        return apiRequest<SurveyMediaDto>(
+          `/api/jobs/${encodeURIComponent(String(jobId))}/survey-sessions/${encodeURIComponent(String(sessionId))}/media`,
+          dispatch,
+          { method: 'POST', body: form },
+        );
+      },
+    }),
+
     saveMediaMarkup: builder.mutation<SaveMarkupResponse, SaveMarkupRequest>({
       queryFn: ({ jobRef, mediaId, markedFile, markup, clientRequestId }) =>
         surveyorRequest<SaveMarkupResponse>({
@@ -579,5 +621,6 @@ export const {
   useSaveRunbookSectionMutation,
   useConfirmRunbookSectionMutation,
   useUploadMediaMutation,
+  useUploadSurveyMediaMutation,
   useSaveMediaMarkupMutation,
 } = surveyorApi;

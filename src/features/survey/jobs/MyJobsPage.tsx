@@ -28,7 +28,7 @@ export function MyJobsPage() {
 
   const summary = isReturnedView
     ? `${surveyorName} · ${plural(jobs.length, 'returned job')}`
-    : `Assigned to ${surveyorName} · ${plural(jobs.length, 'job')}`;
+    : `Assigned jobs - ${plural(jobs.length, 'job')}`;
 
   return (
     <div className={styles.page}>

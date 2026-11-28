@@ -64,7 +64,7 @@ export default defineConfig({
 server: {
   proxy: {
     '/api': {
-      target: 'https://331bcvhd-5204.inc1.devtunnels.ms/',
+      target: 'https://g1v28jg8-5204.inc1.devtunnels.ms/',
       changeOrigin: true,
       secure: true,
     },
