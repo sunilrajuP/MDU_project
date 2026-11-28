@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
-import { useGetJobQuery, useGetJobsQuery } from '@/api/baseApi';
+import { useGetJobQuery, useGetJobsQuery, useGetJobSiteInformationQuery } from '@/api/baseApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectAllUsers } from '@/features/teamlead/teamSlice';
 import { selectJobByJobRefOrId } from '@/features/jobs/jobsSlice';
@@ -9,6 +9,7 @@ import { getDisplayJobStatus } from '@/features/jobs/jobStatus';
 import { transitionJobLocalFirst } from '@/features/review/reviewThunks';
 import { ApproveReturnDialog } from '@/features/review/ApproveReturnDialog';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { formatDate } from '@/utils/date';
 import type { TransitionAction } from '@/types/domain';
@@ -41,6 +42,10 @@ export function JobDetailsPage({ backPath }: JobDetailsPageProps) {
 
   useGetJobsQuery();
   useGetJobQuery(job?.id ?? '', { skip: !job, refetchOnMountOrArgChange: true });
+  const { isFetching: loadingSiteInformation, isError: siteInformationFailed, refetch: refetchSiteInformation } =
+    useGetJobSiteInformationQuery(job?.id ?? '', {
+      skip: !job, refetchOnMountOrArgChange: true, refetchOnReconnect: true,
+    });
 
 
   const [transitionAction, setTransitionAction] = useState<TransitionAction | null>(null);
@@ -48,6 +53,33 @@ export function JobDetailsPage({ backPath }: JobDetailsPageProps) {
   const [transitioning, setTransitioning] = useState(false);
 
   if (!job) return <p className={styles.empty}>Loading job…</p>;
+
+  const site = job.siteInformation;
+  const siteFields: [string, string | number | null][] = site ? [
+    ['Site name', site.siteName],
+    ['Building name', site.buildingName],
+    ['Building type', site.buildingType],
+    ['Ground', site.ground],
+    ['Basement levels', site.basementLevels],
+    ['Floors', site.basementLevels === null || site.floorsAboveGround === null
+      ? null : formatFloors(site.basementLevels, site.floorsAboveGround)],
+    ['EUP', site.eupCount],
+    ['Latitude', site.latitude],
+    ['Longitude', site.longitude],
+    ['Parking available', site.parkingAvailable === null ? null : site.parkingAvailable ? 'Yes' : 'No'],
+    ['Access window', site.accessWindow],
+    ['Entry access instructions', site.entryAccessInstructions],
+    ['Access requirements', site.accessRequirements],
+    ['Contact name', site.contactName],
+    ['Contact email', site.contactEmail],
+    ['Contact phone', site.contactPhone],
+    ['Contact role', site.contactRole],
+  ] : [
+    ['Building name', job.buildingName ?? null],
+    ['Basement levels', job.basementLevels ?? null],
+    ['Floors', formatFloors(job.basementLevels, job.floorsAboveGround)],
+    ['EUP', job.eupCount ?? null],
+  ];
 
   const leadName =
     job.assigneeName ?? (job.assignedTo?.role === 'TeamLead'
@@ -130,33 +162,27 @@ export function JobDetailsPage({ backPath }: JobDetailsPageProps) {
       </Card>
 
       {/* Site information */}
-      {/* Site information */}
       <Card className={styles.card}>
         <h3 className={styles.cardTitle}>Site information</h3>
 
-        <p className={styles.address}>{job.address}</p>
+        {loadingSiteInformation && <p role="status">Loading site information...</p>}
+        {siteInformationFailed && (
+          <div role="alert">
+            <p>Could not load site information.{site ? ' Showing previously saved information.' : ''}</p>
+            <Button type="button" variant="secondary" onClick={() => { void refetchSiteInformation(); }}>Retry</Button>
+          </div>
+        )}
+        <p className={styles.address}>{site?.siteAddress ?? job.address}</p>
 
         <hr className={styles.divider} />
 
         <div className={styles.infoGrid}>
-          <div>
-            <span className={styles.label}>Building name</span>
-            <p className={styles.value}>{job.buildingName || '—'}</p>
-          </div>
-          <div>
-            <span className={styles.label}>Basement levels</span>
-            <p className={styles.value}>{job.basementLevels ?? '—'}</p>
-          </div>
-          <div>
-            <span className={styles.label}>Floors</span>
-            <p className={styles.value}>
-              {formatFloors(job.basementLevels, job.floorsAboveGround)}
-            </p>
-          </div>
-          <div>
-            <span className={styles.label}>EUP</span>
-            <p className={styles.value}>{job.eupCount ?? '—'}</p>
-          </div>
+          {siteFields.map(([label, value]) => (
+            <div key={label}>
+              <span className={styles.label}>{label}</span>
+              <p className={styles.value}>{value === null || value === '' ? '—' : value}</p>
+            </div>
+          ))}
         </div>
       </Card>
 

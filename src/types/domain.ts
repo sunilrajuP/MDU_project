@@ -34,6 +34,31 @@ export interface SiteDetails {
   notes?: string;
 }
 
+export interface SiteInformation {
+  siteId: number;
+  siteName: string;
+  siteAddress: string;
+  placeId: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  buildingName: string | null;
+  buildingTypeId: number | null;
+  buildingType: string | null;
+  groundClassId: number | null;
+  ground: string | null;
+  basementLevels: number | null;
+  floorsAboveGround: number | null;
+  eupCount: number | null;
+  parkingAvailable: boolean | null;
+  accessWindow: string | null;
+  entryAccessInstructions: string | null;
+  accessRequirements: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  contactRole: string | null;
+}
+
 export interface Job {
   id: string;
   siteName: string;
@@ -57,6 +82,7 @@ export interface Job {
   /** Surveyor assigned independently of the Team Lead. */
   assignedSurveyor?: AssignmentActor;
   siteDetails: SiteDetails;
+  siteInformation?: SiteInformation;
   assignmentHistory: AssignmentHistoryEntry[];
   attempt: number;
   updatedAt: string;

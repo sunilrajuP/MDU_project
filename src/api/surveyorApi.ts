@@ -275,30 +275,12 @@ export const surveyorApi = createApi({
   endpoints: (builder) => ({
     getBackendSurvey: builder.query<BackendSurvey, { jobRef: string; userId: string }>({
       async queryFn({ jobRef, userId }, { dispatch }) {
-        const jobId = await resolveJobId(jobRef);
-        const numericId = Number(jobId);
-        if (!/^\d+$/.test(jobId) || !Number.isSafeInteger(numericId) || numericId <= 0) {
-          return { error: { status: 422, message: 'A valid numeric job ID is required to load the survey.' } };
+        const result = await apiRequest<unknown>(`/api/jobs/${encodeURIComponent(jobRef)}/questionnaire`, dispatch, undefined, userId);
+        if ('error' in result) return result;
+        const survey = parseBackendSurvey(result.data);
+        if (!survey || survey.jobRef !== jobRef) {
+          return { error: { status: 422, message: 'The server returned an invalid survey or a different job.' } };
         }
-        // 1. survey-start resumes the job's existing session (or opens one) and gives the session ID.
-        const started = await apiRequest<StartSurveyDto>(`/api/jobs/${jobId}/survey-start`, dispatch, {
-          method: 'POST',
-          body: numericId,
-        }, userId);
-        if ('error' in started) return started;
-        // 2. The questions come from the questionnaire template.
-        const questionnaire = await apiRequest<QuestionnaireDto>(`/api/jobs/${jobId}/questionnaire`, dispatch, undefined, userId);
-        if ('error' in questionnaire) return questionnaire;
-        // 3. Saved answers (also those of a previous surveyor) come from the session's responses.
-        const saved = await apiRequest<SessionResponsesDto>(
-          `/api/jobs/${jobId}/survey-sessions/${encodeURIComponent(String(started.data.sessionId))}/responses`,
-          dispatch, undefined, userId,
-        );
-        if ('error' in saved && saved.error.status !== 404) return saved; // 404 = nothing saved in this session yet
-        const survey = parseBackendSurvey(
-          buildSurvey(jobRef, started.data, questionnaire.data, 'error' in saved ? {} : saved.data),
-        );
-        if (!survey) return { error: { status: 422, message: 'The server returned an invalid survey.' } };
         return { data: survey };
       },
     }),
