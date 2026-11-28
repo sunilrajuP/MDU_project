@@ -8,6 +8,7 @@ import type {
   JobTransition,
   Role,
   SiteDetails,
+  SiteInformation,
   SurveySession,
   TransitionAction,
   User,
@@ -75,6 +76,11 @@ export type GetJobsApiResponse = ApiJob[];
 
 // 3. GET /api/job/:id
 export type GetJobResponse = Job;
+
+/** GET /api/jobs/{jobId}/site-information. */
+export interface GetJobSiteInformationResponse extends SiteInformation {
+  jobId: number;
+}
 
 // 4. GET /api/users/team
 export interface ApiRosterUser {

@@ -1,5 +1,5 @@
 import { getDb } from '../db/getDb';
-import type { Job } from '@/types/domain';
+import type { Job, SiteInformation } from '@/types/domain';
 import type { ApiJob } from '@/types/api';
 import type { JobChanges, JobSyncEntry } from '@/types/jobSync';
 
@@ -29,6 +29,17 @@ export const jobsRepo = {
 
   async upsert(job: Job): Promise<void> {
     await getDb().jobs.put(job);
+  },
+
+  async saveSiteInformation(id: string, siteInformation: SiteInformation): Promise<Job> {
+    const db = getDb();
+    return db.transaction('rw', db.jobs, async () => {
+      const current = await db.jobs.get(id);
+      if (!current) throw new Error('The job is no longer available. Reload the dashboard.');
+      const job = { ...current, siteInformation };
+      await db.jobs.put(job);
+      return job;
+    });
   },
 
   async markDirty(id: string, dirty: boolean, syncStatus: Job['syncStatus']): Promise<void> {

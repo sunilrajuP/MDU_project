@@ -9,6 +9,7 @@ import type {
   CreateJobRequest,
   CreateJobResponse,
   GetJobResponse,
+  GetJobSiteInformationResponse,
   GetJobsApiResponse,
   GetJobsParams,
   GetJobsResponse,
@@ -524,6 +525,33 @@ export const baseApi = createApi({
       providesTags: (_result, _error, id) => [{ type: "Job", id }],
     }),
 
+    getJobSiteInformation: builder.query<GetJobResponse, string>({
+      async queryFn(id, { dispatch }) {
+        const res = await apiRequest<GetJobSiteInformationResponse>(
+          `/api/jobs/${encodeURIComponent(id)}/site-information`, dispatch,
+        );
+        if ("error" in res) return res;
+        if (!res.data) {
+          return { error: { status: 422, message: "The server returned invalid site information." } };
+        }
+        const { jobId, ...siteInformation } = res.data;
+        if (String(jobId) !== id) {
+          return { error: { status: 422, message: "The server returned site information for a different job." } };
+        }
+        try {
+          const data = await jobsRepo.saveSiteInformation(id, siteInformation);
+          dispatch(jobUpserted(data));
+          return { data };
+        } catch (error) {
+          return { error: {
+            status: 500,
+            message: error instanceof Error ? error.message : "Site information could not be saved for offline viewing.",
+          } };
+        }
+      },
+      providesTags: (_result, _error, id) => [{ type: "Job", id }],
+    }),
+
     // The backend returns the appropriate roster for the authenticated user.
     getUsers: builder.query<GetUsersResponse, GetUsersParams>({
       async queryFn({ role }, { dispatch }) {
@@ -707,6 +735,7 @@ export const {
   useLogoutMutation,
   useGetJobsQuery,
   useGetJobQuery,
+  useGetJobSiteInformationQuery,
   useGetUsersQuery,
   useCreateJobMutation,
   useUpdateJobMutation,
